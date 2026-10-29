@@ -1,0 +1,203 @@
+{
+  "1": {
+    "inputs": {
+      "image": "costume_gallery_person_reference.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image - 图二提供人物身份与原画风"
+    }
+  },
+  "2": {
+    "inputs": {
+      "pose_id": "full_sexy_P031_front"
+    },
+    "class_type": "PoseGallery",
+    "_meta": {
+      "title": "Pose Gallery 姿势图库 - 图一提供通用姿态参考"
+    }
+  },
+  "4": {
+    "inputs": {
+      "unet_name": "image2image/qwen_image_2.1_bf16.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model - 加载Qwen Image 2.1基础模型"
+    }
+  },
+  "6": {
+    "inputs": {
+      "device": "auto",
+      "dtype": "default",
+      "model": [
+        "5",
+        0
+      ]
+    },
+    "class_type": "QwenImage21Cache",
+    "_meta": {
+      "title": "Qwen Image 2.1 Cache - 缓存双参考图条件"
+    }
+  },
+  "7": {
+    "inputs": {
+      "clip_name": "text_encoders/qwen3vl_8b_bf16.safetensors",
+      "type": "qwen_image",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Load CLIP - 加载Qwen3-VL 8B文本与图像编码器"
+    }
+  },
+  "8": {
+    "inputs": {
+      "vae_name": "vae/qwen_image_2.1_vae_bf16.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE - 加载Qwen Image 2.1配套VAE"
+    }
+  },
+  "9": {
+    "inputs": {
+      "clip": [
+        "7",
+        0
+      ],
+      "prompt": "Create one coherent image from three references with separate roles. Image1 is the body-pose reference: follow its limb placement, body orientation, camera viewpoint and framing. Image2 is the person reference: preserve this person's identity, facial features, hairstyle, body characteristics, visual style, background and lighting. Image3 is the outfit reference: dress the person in the garments and accessories shown there, preserving their colors, patterns, materials, layering and design details. Change the pose of the person in image2 to the pose in image1 and replace their original outfit with the outfit in image3. Fit the clothes naturally to the posed body, with coherent folds and occlusion. Render the result in the visual style of image2. Do not copy the line drawing, invisible mannequin, display stand, reference background or annotations from the other references. Produce a single finished image of the person, not a reference sheet or collage.",
+      "negative_prompt": "",
+      "resolution": 1024,
+      "images.image_1": [
+        "2",
+        0
+      ],
+      "images.image_2": [
+        "1",
+        0
+      ],
+      "images.image_3": [
+        "20",
+        0
+      ],
+      "vae": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImage21",
+    "_meta": {
+      "title": "Text Encode Qwen Image 2.1 - 按姿态人物服装三图分工编码"
+    }
+  },
+  "10": {
+    "inputs": {
+      "seed": 20261029,
+      "steps": 25,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1.0,
+      "model": [
+        "6",
+        0
+      ],
+      "positive": [
+        "9",
+        0
+      ],
+      "negative": [
+        "9",
+        1
+      ],
+      "latent_image": [
+        "9",
+        2
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler - 25步按图库姿势编辑人物"
+    }
+  },
+  "11": {
+    "inputs": {
+      "samples": [
+        "10",
+        0
+      ],
+      "vae": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode - 解码姿态编辑结果"
+    }
+  },
+  "12": {
+    "inputs": {
+      "filename_prefix": "images/qwen2.1/pose_costume/results/edit",
+      "images": [
+        "11",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image - 保存姿态与服装编辑结果"
+    }
+  },
+  "14": {
+    "inputs": {
+      "filename_prefix": "images/qwen2.1/pose_costume/poses/reference",
+      "images": [
+        "2",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image - 保存所用姿态原图"
+    }
+  },
+  "5": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": [
+        "4",
+        0
+      ],
+      "lora_name": "qwen2.1/动作编辑VNCCS_QI2_PoseStudioV2_3294845.safetensors",
+      "strength_model": 1.0
+    },
+    "_meta": {
+      "title": "Load LoRA - 加载Qwen2.1姿态编辑适配器"
+    }
+  },
+  "20": {
+    "class_type": "CostumeGallery",
+    "inputs": {
+      "costume_id": "SPR-0002"
+    },
+    "_meta": {
+      "title": "Costume Gallery 服装图库 - 图三提供目标服装原图"
+    }
+  },
+  "21": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "20",
+        0
+      ],
+      "filename_prefix": "images/qwen2.1/pose_costume/costumes/reference"
+    },
+    "_meta": {
+      "title": "Save Image - 保存所用服装原图"
+    }
+  }
+}

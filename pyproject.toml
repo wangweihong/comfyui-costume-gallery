@@ -1,0 +1,15 @@
+[project]
+name = "comfyui-costume-gallery"
+version = "0.1.0"
+description = "Browse bundled Chinese costume references and output original images in ComfyUI"
+requires-python = ">=3.10"
+dependencies = ["Pillow", "numpy", "torch", "aiohttp"]
+license = { text = "MIT (code only; costume assets retain upstream rights)" }
+
+[project.urls]
+Repository = "https://github.com/wangweihong/comfyui-costume-gallery"
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "Costume Gallery 服装图库"
+Icon = ""

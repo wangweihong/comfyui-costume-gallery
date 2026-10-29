@@ -1,0 +1,14 @@
+{
+  "repository": "https://github.com/wangweihong/ai-costume-gallery-zh",
+  "commit": "28616efb36e97b7c2f1ba451814cf3ad4649ad9a",
+  "snapshot_date": "2026-10-29",
+  "records": 1407,
+  "asset_versions": [
+    "thumbs",
+    "img",
+    "png"
+  ],
+  "original_site": "https://ai-costume-gallery.pages.dev/",
+  "original_author": "ギア",
+  "runtime_downloads": false
+}

@@ -1,0 +1,36 @@
+{
+  "1": {
+    "class_type": "CostumeGallery",
+    "inputs": {
+      "costume_id": "SPR-0001"
+    },
+    "_meta": {
+      "title": "Costume Gallery 服装图库 - 搜索并选择本地服装原图"
+    }
+  },
+  "2": {
+    "class_type": "PreviewImage",
+    "inputs": {
+      "images": [
+        "1",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "Preview Image - 检查服装原图输出"
+    }
+  },
+  "3": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "1",
+        0
+      ],
+      "filename_prefix": "images/costume_gallery/selected/costume"
+    },
+    "_meta": {
+      "title": "Save Image - 保存选中的服装原图"
+    }
+  }
+}

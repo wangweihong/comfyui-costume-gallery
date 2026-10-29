@@ -1,0 +1,23 @@
+{
+  "status": "success",
+  "selected_costume_id": "SPR-0002",
+  "output_size": [
+    1366,
+    2048
+  ],
+  "source_pixels_preserved": true,
+  "prompt_id": "d94807d5-5058-4ce2-9cf8-6f86322859aa",
+  "ui_checks": [
+    "node opens gallery modal",
+    "costume ID search",
+    "combined Chinese/English/ID search",
+    "category filter",
+    "use costume writes selection to node",
+    "original PNG loads in node",
+    "PreviewImage and SaveImage output succeed"
+  ],
+  "bundle_verified": true,
+  "records": 1407,
+  "image_files": 4221,
+  "total_bytes": 1525033375
+}

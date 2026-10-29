@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-29",
+  "timezone": "Asia/Shanghai",
+  "generic_prompt_tested": true,
+  "reference_order": [
+    "pose",
+    "person",
+    "costume"
+  ],
+  "same_prompt_and_seed": true,
+  "steps": 25,
+  "cfg": 1,
+  "seed": 20261029,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "lora_strength": 1,
+  "tests": [
+    {
+      "pose_id": "full_sexy_P031_front",
+      "costume_id": "SPR-0002",
+      "prompt_id": "131d1671-05b9-4b00-a4f7-8a7dd47a385e",
+      "elapsed_seconds": 21.886,
+      "output_size": [
+        896,
+        1184
+      ],
+      "status": "success",
+      "visual_review": "Kneeling and arms behind head followed; reference face and hairstyle retained; yellow floral top, pink skirt, beige coat and bag transferred, with garment layering interpretation."
+    },
+    {
+      "pose_id": "full_sexy_P002_front",
+      "costume_id": "WIN-0001",
+      "prompt_id": "38d9a803-943a-40a6-8865-216e50606ca8",
+      "elapsed_seconds": 21.959,
+      "output_size": [
+        896,
+        1184
+      ],
+      "status": "success",
+      "visual_review": "Standing and arms behind head followed; identity broadly retained; beige knit, puffer, dark green skirt, bag and boots transferred. Headwear omitted and puffer sleeves differ."
+    }
+  ],
+  "limitations": "Only two single-person front poses and two outfits tested. Broad pose, identity and clothing transfer work, but garment construction, headwear, accessories, occlusion and exact facial likeness can deviate.",
+  "browser_workflow_test": {
+    "status": "success",
+    "prompt_id": "e9d16966-06bf-4dce-a5d1-0d66077375fa",
+    "three_image_links_verified": true
+  }
+}

@@ -8,6 +8,8 @@
   <meta name="color-scheme" content="light">
   <link rel="icon" href="web/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="web/style.css">
+  <link rel="stylesheet" href="web/custom_upload.css">
+  <script src="web/custom_upload.mjs"></script>
   <script src="web/gallery.mjs" type="module"></script>
 </head>
 <body>
@@ -22,7 +24,7 @@
     </section>
   </main>
   <footer><p>图片及原始数据来源：<a href="https://ai-costume-gallery.pages.dev/">COSTUME-DB-01</a> · 原作者 <a href="https://x.com/giaaibusi">ギア</a></p><p>感谢 <a href="https://github.com/anhao/ai-pose-gallery-zh">Anhao 中文姿势图库</a>提供整理思路。代码 MIT 开源；图片与原始数据不包含在 MIT 授权内。<a href="https://github.com/Deeyu/ai-costume-gallery-zh/blob/main/THIRD_PARTY_NOTICES.md">版权与致谢</a></p><p>本项目为独立的中文整理与静态站点学习实践，不代表原作者的官方版本或背书。</p></footer>
-  <dialog id="viewer" aria-labelledby="detail-title"><div class="detail"><div class="picture"><img id="large" alt=""><p id="image-status" role="status"></p></div><div class="detail-info"><button id="close" class="close" aria-label="关闭大图">×</button><p id="detail-cat" class="detail-cat"></p><h2 id="detail-title"></h2><p id="position"></p><h3>服装关键词</h3><p id="tags"></p><details><summary>原始英文关键词</summary><p id="english"></p></details><div class="actions"><button id="use-costume" class="primary">使用此服装 → ComfyUI</button><a id="download" class="primary" download>下载 PNG 原图</a><a id="open-original" target="_blank" rel="noopener">打开原图</a><button id="copy">复制 ID</button></div><div class="paging"><button id="prev">上一套</button><button id="next">下一套</button></div><small>← → 切换 · Esc 关闭</small></div></div></dialog>
+  <dialog id="viewer" aria-labelledby="detail-title"><div class="detail"><div class="picture"><img id="large" alt=""><p id="image-status" role="status"></p></div><div class="detail-info"><button id="close" class="close" aria-label="关闭大图">×</button><p id="detail-cat" class="detail-cat"></p><h2 id="detail-title"></h2><p id="position"></p><p id="custom-source" class="gallery-user-source" hidden></p><h3 id="tags-heading">服装关键词</h3><p id="tags"></p><details><summary>原始英文关键词</summary><p id="english"></p></details><div class="actions"><button id="use-costume" class="primary">使用此服装 → ComfyUI</button><a id="download" class="primary" download>下载 PNG 原图</a><a id="open-original" target="_blank" rel="noopener">打开原图</a><button id="copy">复制 ID</button></div><div class="paging"><button id="prev">上一套</button><button id="next">下一套</button></div><small>← → 切换 · Esc 关闭</small></div></div></dialog>
   <dialog id="guide" aria-labelledby="guide-title"><h2 id="guide-title">如何使用服装集</h2><p>按分类浏览，或用中文、英文、服装 ID 搜索。多个词用空格分隔，结果需同时包含这些词。</p><p>打开大图后下载 PNG，在 AI 工具中作为服装或图片参考。图片不含人物，脸、体型和背景需要另行指定。</p><p>分类及标签是原站元数据的中文翻译，标签可能不完整，请以图片为准。图片使用范围以原作者授权为准，本项目不授予图片的商业使用权。</p><form method="dialog"><button class="primary">知道了</button></form></dialog>
 </body>
 </html>

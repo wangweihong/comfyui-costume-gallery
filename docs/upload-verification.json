@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "total": 1408,
+    "builtin_count": 1407,
+    "user_count": 1,
+    "builtin_missing": false,
+    "sections": {
+      "face": 0,
+      "styling": 0,
+      "custom": 0
+    }
+  },
+  "custom_id": "u-6c8cd6672fae4edd8457207531b705e2",
+  "source_id": "",
+  "dimensions": [
+    1366,
+    2048
+  ],
+  "api_validation": [
+    {
+      "case": "invalid image",
+      "status": 400,
+      "error": "invalid_image"
+    },
+    {
+      "case": "two images",
+      "status": 400,
+      "error": "single_image_only"
+    },
+    {
+      "case": "unsafe path",
+      "status": 400,
+      "error": "invalid_filename"
+    },
+    {
+      "case": "missing file",
+      "status": 400,
+      "error": "image_required"
+    },
+    {
+      "case": "too large",
+      "status": 413,
+      "error": "file_too_large"
+    }
+  ],
+  "restart_persistence": true,
+  "node_ui_writeback": true,
+  "no_jobs_queued_by_upload_or_selection": true,
+  "python_tests": 16,
+  "node_output_count": 6,
+  "legacy_node_output_verified": true,
+  "original_and_derivatives_verified": true,
+  "node_output": {
+    "id": "u-6c8cd6672fae4edd8457207531b705e2",
+    "dimensions": [
+      1366,
+      2048
+    ],
+    "outputs": 6,
+    "description": "未分类 / 自定义示例·春装",
+    "legacy_id": "SPR-0001",
+    "legacy_dimensions": [
+      1366,
+      2048
+    ],
+    "source_id": "",
+    "keywords_en": ""
+  },
+  "custom_language_form_verified": true,
+  "source_filter_verified": true,
+  "missing_builtin_custom_library_unit_test_passed": true,
+  "browser_viewport_check": {
+    "verified": false,
+    "reason": "Viewport override did not change innerWidth (remained 1280). Responsive CSS provided; desktop and embedded-node UI verified."
+  },
+  "screenshots": [
+    "docs/custom-upload-form.png",
+    "docs/custom-upload-selected.png"
+  ],
+  "animation_error_and_retry_form_verified": true
+}

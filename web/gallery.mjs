@@ -23,7 +23,7 @@ function renderCategories() {
 }
 function applyFilters() {
   const words = $('q').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  filtered = records.filter((r) => (!category || r.分类 === category) && words.every((w) => r.检索.includes(w)));
+  filtered = records.filter((r) => uploads.matches(r) && (!category || r.分类 === category) && words.every((w) => r.检索.includes(w)));
   shown = 0;
   $('grid').replaceChildren();
   renderCategories();
@@ -43,7 +43,7 @@ function appendPage() {
     img.addEventListener('error', () => { img.alt = `${r.id} 图片加载失败，请检查节点内的本地素材`; });
     const info = element('div', undefined, 'card-info');
     const heading = element('div', undefined, 'card-heading');
-    heading.append(element('h3', r.id), element('span', r.分类, 'card-cat'));
+    heading.append(element('h3', r.origin==='user'?uploads.name(r):r.id), element('span', r.origin==='user'?(uploads.language==='en'?'Custom':'自定义'):r.分类, 'card-cat'));
     info.append(heading, element('p', r.关键词.join(' · ')));
     button.append(img, info);
     button.addEventListener('click', () => { current = start + i; showDetail(); $('viewer').showModal(); });
@@ -56,7 +56,11 @@ function appendPage() {
 }
 function showDetail() {
   const r = filtered[current];
-  $('detail-title').textContent = r.id;
+  $('detail-title').textContent = r.origin==='user'?uploads.name(r):r.id;
+  $('custom-source').hidden=r.origin!=='user';
+  $('custom-source').textContent=r.origin==='user'?`${r.id}\n${uploads.language==='en'?'Uploaded file':'用户上传'}: ${r.original_filename}\n${new Date(r.uploaded_at).toLocaleString()}`:'';
+  $('tags-heading').hidden=r.origin==='user';
+  $('english').closest('details').hidden=r.origin==='user';
   $('detail-cat').textContent = r.分类;
   $('position').textContent = `${current + 1} / ${filtered.length}`;
   $('tags').textContent = r.关键词.join(' · ');
@@ -120,14 +124,19 @@ for (const dialog of [$('viewer'), $('guide')]) dialog.addEventListener('click',
   const box = dialog.getBoundingClientRect();
   if (e.target === dialog && (e.clientX < box.left || e.clientX > box.right || e.clientY < box.top || e.clientY > box.bottom)) dialog.close();
 });
+const assetRows=rows=>rows.map(row=>({...row,缩略图:`assets/thumbs/${row.id}.webp`,预览图:`assets/img/${row.id}.webp`,原图:`assets/png/${row.id}.png`}));
+const uploads=window.GalleryUploads.mount({kind:'costume',toolbar:document.querySelector('.topbar nav'),filters:document.querySelector('.library'),
+  onSource(){applyFilters();},onLanguage(){applyFilters();if($('viewer').open)showDetail();},
+  onUploaded(payload,id){records=assetRows(payload.records);category='';$('q').value='';$('total').textContent=`${records.length.toLocaleString()} 套 / ${new Set(records.map(r=>r.分类)).size} 个分类`;applyFilters();current=filtered.findIndex(r=>r.id===id);if(current>=0){showDetail();$('viewer').showModal();}}
+});
 async function init() {
   try {
     const response = await fetch('catalog');
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     records = await response.json();
-    if (Array.isArray(records)) records = records.map((row) => ({ ...row, 缩略图: `assets/thumbs/${encodeURIComponent(row.id)}.webp`, 预览图: `assets/img/${encodeURIComponent(row.id)}.webp`, 原图: `assets/png/${encodeURIComponent(row.id)}.png` }));
-    if (!Array.isArray(records) || !records.length) throw new Error('数据为空');
-    $('total').textContent = `${records.length.toLocaleString()} 套 / 8 个分类`;
+    if (Array.isArray(records)) records = assetRows(records);
+    if (!Array.isArray(records)) throw new Error('数据为空');
+    $('total').textContent = `${records.length.toLocaleString()} 套 / ${new Set(records.map(r=>r.分类)).size} 个分类`;
     applyFilters();
     if (window.parent !== window) window.parent.postMessage({ type: 'costume-gallery-ready' }, location.origin);
   } catch (error) {

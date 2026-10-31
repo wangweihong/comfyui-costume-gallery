@@ -1,6 +1,36 @@
 # comfyui-costume-gallery
 
+**简体中文** · [English](README.en.md)
+
 ComfyUI 本地中文服装图库节点，参考 [ai-costume-gallery-zh](https://github.com/wangweihong/ai-costume-gallery-zh) 的界面和素材。内置 1,407 套服装，8 个分类，包含全部 WebP 缩略图、WebP 预览图和 PNG 原图，共 4,221 张图片，约 1.42 GiB。
+
+
+## 单张上传自定义服装
+
+1. 在独立图库或节点内嵌图库的顶部点击 **上传服装**。
+2. 选择一张现成参考图，查看预览，填写名称。另一语言名称可选；未填写时沿用已有名称，不自动翻译。顶部 **中文 / English** 切换新增上传控件、提示和自定义名称的语言，原有内置图库浏览标签保持中文。
+3. 点击 **保存到图库**。成功后切换到“自定义”来源，清除分类、搜索等筛选，并打开新素材的大图。
+4. 在大图中点击 **使用此服装 → ComfyUI**，写回当前节点；上传和选择都不会自动运行或排队。
+
+服装分类可选，默认未分类。用户名称作为名称保存，不编造服装标签；自定义素材的 keywords_en 输出为空字符串。
+
+支持静态 PNG、JPEG、WebP，一次一张，限制 **20 MiB、3200 万像素**。服务端检查实际内容，拒绝动画、损坏图片和越界路径。完整图片转为 PNG，保留尺寸和透明度；生成 800×1000 内的 WebP 预览、400×500 内的 WebP 缩略图。节点 IMAGE 输出的透明部分合成白色。上传仅导入图片，**不自动提取、抠图、去背景或修改人物**。第一版不含批量导入、编辑和删除。
+
+自定义数据保存在 **`ComfyUI/user/costume_gallery/`**，独立于节点代码与内置素材；升级代码不会覆盖：
+
+- `data/custom.json`：稳定 `u-` + UUID 编号、中英文名称、分类、原文件名、尺寸、上传时间和校验值。
+- png/（PNG）、img/（WebP）、thumbs/（WebP）：完整图、预览与缩略图，按同一编号对应。
+- 备份时请单独备份此用户目录。本地 ComfyUI 服务的客户端共享该库，没有账号或多用户权限隔离。
+- 可用 `COMFYUI_COSTUME_GALLERY_USER_LIBRARY` 指定其他持久化、可写且容器内可见的目录。
+
+新增 **全部来源 / 内置 / 自定义** 筛选与独立数量统计；缺少内置索引时仍可上传与使用自定义素材。保留现有 **6 个输出**、旧编号和连线兼容；自定义编号用于 `costume_id`，`source_id` 元数据为空，不冒用原站编号。
+
+接口：`POST /costume_gallery/upload`，multipart 字段 `image`、`name`，可选 `other_name`、`language`（zh/en）、`category`。成功返回201及 `record`、包含 `records` 和 `meta` 的 `catalog`；失败返回错误代码。索引加锁并原子替换，失败回滚本次新文件。`GET /costume_gallery/catalog` 保持数组格式，并增加 `origin=builtin/user`；`GET /costume_gallery/meta` 提供数量与缺失状态。图片接口只读取索引中登记的文件。
+
+![自定义上传预览与名称表单](docs/custom-upload-form.png)
+
+![自定义素材大图](docs/custom-upload-selected.png)
+
 
 ## 安装与使用
 

@@ -1,0 +1,81 @@
+{
+  "random_runs": [
+    {
+      "prompt_id": "e5beed2d-89c9-4d93-842c-eaf4e6545c38",
+      "source": "all",
+      "selected_id": "SPR-0082",
+      "name": "春装",
+      "cached_nodes": [],
+      "dimensions": [
+        1366,
+        2048
+      ]
+    },
+    {
+      "prompt_id": "59197202-a192-4c0c-92dd-3c41a355c11d",
+      "source": "all",
+      "selected_id": "LNG-0064",
+      "name": "内衣",
+      "cached_nodes": [],
+      "dimensions": [
+        1366,
+        2048
+      ]
+    },
+    {
+      "prompt_id": "6f9b4b40-15d0-4d60-a285-622d0dbbd24f",
+      "source": "all",
+      "selected_id": "SUM-0127",
+      "name": "夏装",
+      "cached_nodes": [],
+      "dimensions": [
+        1366,
+        2048
+      ]
+    },
+    {
+      "prompt_id": "ac5d3549-45a4-457c-a9ab-67959acc74a4",
+      "source": "builtin",
+      "selected_id": "WIN-0244",
+      "name": "冬装",
+      "cached_nodes": [],
+      "dimensions": [
+        1366,
+        2048
+      ]
+    },
+    {
+      "prompt_id": "9a965776-e765-49a4-9918-29066ebbd280",
+      "source": "user",
+      "selected_id": "u-6c8cd6672fae4edd8457207531b705e2",
+      "name": "自定义示例·春装",
+      "cached_nodes": [],
+      "dimensions": [
+        1366,
+        2048
+      ]
+    }
+  ],
+  "fixed_runs": [
+    {
+      "prompt_id": "db8d7971-a3a9-4d70-8c20-072cea4886ef",
+      "cached_nodes": []
+    },
+    {
+      "prompt_id": "7c7c1293-b694-4e25-a1f2-9ee2354fa0bc",
+      "cached_nodes": [
+        "1",
+        "2"
+      ]
+    }
+  ],
+  "python_tests": 21,
+  "new_frontend_tests": 3,
+  "original_node_source_unchanged": true,
+  "port_count": 6,
+  "ui_execution_preview_verified": true,
+  "original_browser_unchanged": true,
+  "screenshots": [
+    "docs/random-node.png"
+  ]
+}

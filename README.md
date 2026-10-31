@@ -5,6 +5,20 @@
 ComfyUI 本地中文服装图库节点，参考 [ai-costume-gallery-zh](https://github.com/wangweihong/ai-costume-gallery-zh) 的界面和素材。内置 1,407 套服装，8 个分类，包含全部 WebP 缩略图、WebP 预览图和 PNG 原图，共 4,221 张图片，约 1.42 GiB。
 
 
+
+## 每次运行随机：独立节点
+
+添加 **image → Costume Gallery → Random Costume Gallery 随机服装图库**，将 `image` 接入后续工作流或 Preview Image。每次执行会重新随机抽取一张原图，无需点击随机按钮。`origin` 可选 `all`（全部）、`builtin`（内置）或 `user`（自定义）。保留原分类与关键词语义；自定义素材的英文关键词仍为空，不自动编造标签。
+
+原 **CostumeGallery** 的输入、固定选图、缓存、6个输出和连线均保持不变。新节点沿用这6个输出，所有数据对应同一张实际抽中的素材；执行后显示编号和预览。新节点的 `language` 切换界面、提示及自定义预览名称语言，端口数据仍沿用原节点语义，不补造内置描述的译文。
+
+抽样可能偶然重复，不受浏览页面筛选影响；缺失原图会跳过，无可用图片时明确报错。保存的预览编号不参与下次抽样。需要固定结果时，将输出 `costume_id` 填入原节点。新节点本身不会启动或追加任务。
+
+导入 [随机服装预览示例](example_workflows/random_costume_preview.json)，附同名 API 工作流。
+
+![独立随机服装节点实测](docs/random-node.png)
+
+
 ## 单张上传自定义服装
 
 1. 在独立图库或节点内嵌图库的顶部点击 **上传服装**。
@@ -100,4 +114,8 @@ python3 -m unittest discover -s tests -v
 node --test tests/test_preview.mjs
 node --check web/costume_gallery.js
 node --check web/gallery.mjs
+```
+
+```bash
+node --test tests/test_random_frontend.cjs
 ```

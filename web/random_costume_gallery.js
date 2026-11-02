@@ -1,6 +1,27 @@
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
+import "./i18n.mjs";
 import "./random_i18n.mjs";
+
+// Preview-name restoration must not depend on the version of the shared UI module.
+// Start inside a promise so failures cannot escape onConfigure and abort graph loading.
+let previewCatalogPromise;
+function loadPreviewCatalog() {
+  if (!previewCatalogPromise) {
+    previewCatalogPromise = Promise.resolve()
+      .then(() => fetch(api.apiURL('/costume_gallery/catalog')))
+      .then(response => {
+        if (!response.ok) throw new Error('Cannot load preview names');
+        return response.json();
+      })
+      .then(rows => {
+        if (!Array.isArray(rows)) throw new Error('Invalid preview catalog');
+        return rows;
+      })
+      .catch(error => { previewCatalogPromise = null; throw error; });
+  }
+  return previewCatalogPromise;
+}
 
 app.registerExtension({
   name:'comfyui-costume-gallery.random-preview',
@@ -12,7 +33,7 @@ app.registerExtension({
       const node=this,I=window.RandomCostumeI18n;
       const langWidget=node.widgets.find(w=>w.name==='language');
       const originWidget=node.widgets.find(w=>w.name==='origin');
-      let language=I.preferred(),lastId='',lastName='',imageFailed=false,removed=false,imageVersion=0;
+      let language=I.preferred(),lastId='',lastName='',lastNames={},imageFailed=false,removed=false,imageVersion=0;
       node.properties??={};
       if(langWidget)langWidget.value=language;
       const t=source=>I.translate(source,language);
@@ -23,27 +44,36 @@ app.registerExtension({
       box.append(image,status,id);
       const toggle=document.createElement('button');toggle.type='button';toggle.style.cssText='width:100%;height:36px;border:1px solid #b6c1aa;background:#e9ecdf;color:#343c2d;border-radius:6px;cursor:pointer;font:12px sans-serif;';
       function render(){
-        status.textContent=imageFailed?t('随机服装预览加载失败，请检查素材原图。'):lastId?(t('上次运行结果')+(lastName?' · '+lastName:'')):t('运行工作流后自动抽取服装');
+        status.textContent=imageFailed?t('随机服装预览加载失败，请检查素材原图。'):lastId?(t('上次运行结果')+((lastNames[language]||t(lastName))?' · '+(lastNames[language]||t(lastName)):'')):t('运行工作流后自动抽取服装');
         id.textContent=lastId;
         image.alt=t('本次随机服装预览');
         toggle.textContent=language==='en'?'中文':'English';
         toggle.setAttribute('aria-label',language==='en'?'切换到中文':'Switch to English');
         if(langWidget)langWidget.label=t('界面与提示语言');
         if(originWidget)originWidget.label=t('随机来源');
-        const labels=["图像", "宽度", "高度", "服装编号", "描述", "英文关键词"];
+        const labels=['图像','宽度','高度','服装编号','描述','英文关键词','服装名称'];
         node.outputs?.forEach((output,i)=>{output.label=t(labels[i]||output.name);});
         if(['RandomCostumeGallery','Random Costume Gallery','Random Costume Gallery 随机服装图库'].includes(node.title))node.title=language==='en'?'Random Costume Gallery':'Random Costume Gallery 随机服装图库';
         node.setDirtyCanvas(true,true);
       }
       function setLanguage(value){language=I.normalize(value);I.persist(language);if(langWidget)langWidget.value=language;render();}
-      function showResult(value,name=''){
+      function showResult(value,name='',names={}){
         if(typeof value!=='string'||!/^[A-Za-z0-9_-]{1,80}$/.test(value))return false;
-        lastId=value;lastName=typeof name==='string'?name:'';imageFailed=false;
-        node.properties.last_costume_id=lastId;node.properties.last_costume_name=lastName;
+        lastId=value;lastName=typeof name==='string'?name:'';lastNames=names;imageFailed=false;
+        node.properties.last_costume_id=lastId;node.properties.last_costume_name=lastName;node.properties.last_costume_names=lastNames;
         const token=++imageVersion;
         image.onload=()=>{if(!removed&&token===imageVersion){image.style.display='block';imageFailed=false;render();}};
         image.onerror=()=>{if(!removed&&token===imageVersion){image.style.display='none';imageFailed=true;render();}};
-        image.src=api.apiURL(`/costume_gallery/assets/png/${encodeURIComponent(lastId)}.png`);image.title=lastId;render();return true;
+        image.src=api.apiURL(`/costume_gallery/assets/png/${encodeURIComponent(lastId)}.png`);image.title=lastId;render();
+        if(!lastNames.en&&typeof fetch==='function'){
+          const requested=lastId;
+          loadPreviewCatalog().then(rows=>{
+            if(removed||requested!==lastId)return;
+            const row=rows.find(item=>item.id===requested);
+            if(row){lastNames={zh:row.name_zh||row.title,en:row.name_en};node.properties.last_costume_names=lastNames;render();}
+          }).catch(()=>{});
+        }
+        return true;
       }
       toggle.onclick=()=>{setLanguage(language==='en'?'zh':'en');app.graph.change();};
       if(langWidget){const previous=langWidget.callback;langWidget.callback=function(value){previous?.apply(this,arguments);setLanguage(value);app.graph.change();};}
@@ -51,11 +81,11 @@ app.registerExtension({
       node.addDOMWidget('random_costume_preview','image',box,{serialize:false,hideOnZoom:false,getMinHeight:()=>310,getMaxHeight:()=>500});
       const executed=node.onExecuted;node.onExecuted=function(message){
         executed?.apply(this,arguments);if(removed)return;
-        if(showResult(message?.costume_id?.[0],message?.name?.[0]))app.graph.change();
+        if(showResult(message?.costume_id?.[0],message?.name?.[0],{zh:message?.name_zh?.[0],en:message?.name_en?.[0]}))app.graph.change();
       };
       const configured=node.onConfigure;node.onConfigure=function(config){
-        configured?.apply(this,arguments);setLanguage(config?.widgets_values?.[1]);
-        if(node.properties.last_costume_id)showResult(node.properties.last_costume_id,node.properties.last_costume_name);
+        configured?.apply(this,arguments);if(node.outputs?.length===6&&!node.outputs.some(output=>output.name==='costume'))node.addOutput('costume','STRING');setLanguage(config?.widgets_values?.[1]);
+        if(node.properties.last_costume_id)showResult(node.properties.last_costume_id,node.properties.last_costume_name,node.properties.last_costume_names);
       };
       const originalRemoved=node.onRemoved;node.onRemoved=function(){removed=true;imageVersion++;originalRemoved?.apply(this,arguments);};
       node.setSize([420,565]);render();

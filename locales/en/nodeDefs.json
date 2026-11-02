@@ -8,7 +8,8 @@
         "tooltip": "all: all references; builtin: bundled; user: custom uploads."
       },
       "language": {
-        "name": "UI / error language"
+        "name": "UI / output language",
+        "tooltip": "Controls interface labels and text outputs; saved with the workflow."
       }
     },
     "outputs": {
@@ -29,6 +30,44 @@
       },
       "5": {
         "name": "English keywords"
+      },
+      "6": {
+        "name": "Costume name"
+      }
+    }
+  },
+  "CostumeGallery": {
+    "display_name": "Costume Gallery",
+    "inputs": {
+      "language": {
+        "name": "UI / output language",
+        "tooltip": "Controls interface labels and text outputs; saved with the workflow."
+      },
+      "costume_id": {
+        "name": "Costume ID"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "Image"
+      },
+      "1": {
+        "name": "Width"
+      },
+      "2": {
+        "name": "Height"
+      },
+      "3": {
+        "name": "Costume ID"
+      },
+      "4": {
+        "name": "Description"
+      },
+      "5": {
+        "name": "English keywords"
+      },
+      "6": {
+        "name": "Costume name"
       }
     }
   }

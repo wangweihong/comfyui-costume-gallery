@@ -1,5 +1,9 @@
 'use strict';
 const $ = (id) => document.getElementById(id);
+const I=window.CostumeI18n;
+let language=I.preferred();
+const t=(source,values)=>I.translate(source,language,values);
+const applyLanguage=I.watchPage(()=>language);
 let records = [], filtered = [], category = '', shown = 0, current = 0;
 const PAGE = 60;
 let selectedId = '';
@@ -35,10 +39,10 @@ function appendPage() {
   const start = shown;
   const cards = filtered.slice(start, start + PAGE).map((r, i) => {
     const button = element('button', undefined, 'card');
-    button.setAttribute('aria-label', `查看 ${r.id} ${r.分类}`);
+    button.setAttribute('aria-label', t('查看 {id} {category}',{id:r.id,category:t(r.分类)}));
     button.setAttribute('aria-current', String(r.id === selectedId));
     const img = element('img');
-    img.src = r.缩略图; img.alt = `${r.分类} ${r.关键词.join('、')} ${r.id}`;
+    img.src = r.缩略图; img.alt = `${t(r.分类)} ${language==='en'?r.keywords_list_en.join(','):r.关键词.join('、')} ${r.id}`;
     img.loading = 'lazy'; img.decoding = 'async'; img.width = 300; img.height = 450;
     img.addEventListener('error', () => { img.alt = `${r.id} 图片加载失败，请检查节点内的本地素材`; });
     const info = element('div', undefined, 'card-info');
@@ -69,7 +73,7 @@ function showDetail() {
   $('large').onload = () => { $('image-status').textContent = ''; };
   $('large').onerror = () => { $('image-status').textContent = '预览图加载失败，可尝试打开原图。'; };
   $('large').src = r.预览图;
-  $('large').alt = `${r.id} ${r.关键词.join('、')}`;
+  $('large').alt = `${r.id} ${language==='en'?r.keywords_list_en.join(','):r.关键词.join('、')}`;
   $('download').href = r.原图; $('download').download = `${r.id}.png`;
   $('open-original').href = r.原图;
   $('prev').disabled = current === 0; $('next').disabled = current === filtered.length - 1;
@@ -124,11 +128,24 @@ for (const dialog of [$('viewer'), $('guide')]) dialog.addEventListener('click',
   const box = dialog.getBoundingClientRect();
   if (e.target === dialog && (e.clientX < box.left || e.clientX > box.right || e.clientY < box.top || e.clientY > box.bottom)) dialog.close();
 });
-const assetRows=rows=>rows.map(row=>({...row,缩略图:`assets/thumbs/${row.id}.webp`,预览图:`assets/img/${row.id}.webp`,原图:`assets/png/${row.id}.png`}));
-const uploads=window.GalleryUploads.mount({kind:'costume',toolbar:document.querySelector('.topbar nav'),filters:document.querySelector('.library'),
-  onSource(){applyFilters();},onLanguage(){applyFilters();if($('viewer').open)showDetail();},
+const assetRows=rows=>{I.registerRows(rows);return rows.map(row=>({...row,缩略图:`assets/thumbs/${row.id}.webp`,预览图:`assets/img/${row.id}.webp`,原图:`assets/png/${row.id}.png`}));};
+const uploads=window.GalleryUploads.mount({kind:'costume',language,toolbar:document.querySelector('.topbar nav'),filters:document.querySelector('.library'),
+  onSource(){applyFilters();},onLanguage(value){setLanguage(value);},
   onUploaded(payload,id){records=assetRows(payload.records);category='';$('q').value='';$('total').textContent=`${records.length.toLocaleString()} 套 / ${new Set(records.map(r=>r.分类)).size} 个分类`;applyFilters();current=filtered.findIndex(r=>r.id===id);if(current>=0){showDetail();$('viewer').showModal();}}
 });
+function setLanguage(value,notify=true){
+  language=I.normalize(value);I.persist(language);uploads.setLanguage(language,false);
+  const id=$('viewer').open?filtered[current]?.id:null;
+  const visible=shown;
+  applyFilters();while(shown<visible&&shown<filtered.length)appendPage();
+  if(id){const index=filtered.findIndex(row=>row.id===id);if(index>=0){current=index;showDetail();}}
+  applyLanguage();
+  if(notify&&window.parent!==window)window.parent.postMessage({type:'costume-gallery-language',language},location.origin);
+}
+window.addEventListener('message',event=>{
+  if(event.origin===location.origin&&event.source===window.parent&&event.data?.type==='costume-gallery-language'&&['zh','en'].includes(event.data.language))setLanguage(event.data.language,false);
+});
+setLanguage(uploads.language,false);
 async function init() {
   try {
     const response = await fetch('catalog');

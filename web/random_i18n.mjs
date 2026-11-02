@@ -19,7 +19,7 @@
   const normalize=value=>value==='en'?'en':'zh';
   function preferred(){try{return normalize(localStorage.getItem(LANGUAGE_KEY));}catch{return 'zh';}}
   function persist(value){try{localStorage.setItem(LANGUAGE_KEY,normalize(value));}catch{}}
-  function translate(text,language){return language==='en'?(EN[text]??text):text;}
-  const api={preferred,persist,normalize,translate};
+  function translate(text,language){return language==='en'?(EN[text]??root.CostumeI18n?.translate(text,language)??text):text;}
+  const api={preferred,persist,normalize,translate,loadCatalog:url=>root.CostumeI18n.loadCatalog(url)};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.RandomCostumeI18n=api;
 })(typeof window!=='undefined'?window:globalThis);

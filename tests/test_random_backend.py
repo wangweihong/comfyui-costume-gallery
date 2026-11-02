@@ -60,7 +60,7 @@ class RandomNodeTests(unittest.TestCase):
         with patch.object(self.module.random,'choice',side_effect=choices) as choose:results=[self.node().load_random(language='en') for _ in range(3)]
         self.assertEqual(choose.call_count,3)
         for item,chosen in zip(results,choices):
-            result=item['result'];expected=getattr(self.old(),self.old.FUNCTION)(chosen['id'])
+            result=item['result'];expected=getattr(self.old(),self.old.FUNCTION)(chosen['id'], language='en')
             self.assertEqual(len(result),len(self.old.RETURN_NAMES));self.assertEqual(result[1:],expected[1:]);self.assertTrue(result[0].equal(expected[0]))
             self.assertEqual(result[0].shape,(1,chosen['h'],chosen['w'],3));self.assertEqual(result[3],chosen['id']);self.assertEqual(item['ui'][KIND+'_id'],[chosen['id']])
             if chosen is self.custom:self.assertEqual(item['ui']['name'],['My reference'])
@@ -73,5 +73,21 @@ class RandomNodeTests(unittest.TestCase):
     def test_candidate_scan_loads_and_validates_the_catalog_only_once(self):
         with patch.object(self.module,'records',wraps=self.module.records) as reader:
             self.node._candidates();self.assertEqual(reader.call_count,1)
+
+    def test_language_controls_description_and_selected_name_for_fixed_and_random_nodes(self):
+        loaders=(lambda lang:self.old().load_costume(self.builtin['id'],language=lang),lambda lang:self.node().load_random('builtin',lang)['result'])
+        for load in loaders:
+            zh,en=load('zh'),load('en')
+            self.assertEqual(len(en),7)
+            self.assertNotRegex(en[4],r'[\u3400-\u9fff]')
+            self.assertNotRegex(en[6],r'[\u3400-\u9fff]')
+            self.assertNotEqual(zh[4],en[4])
+            self.assertNotEqual(zh[6],en[6])
+            self.assertEqual(zh[1:4],en[1:4]);self.assertTrue(zh[0].equal(en[0]))
+        self.assertEqual(self.old.RETURN_NAMES[-1],'costume')
+        self.assertNotEqual(self.old.IS_CHANGED(self.builtin['id'],'en'),self.old.IS_CHANGED(self.builtin['id'],'zh'))
+        self.assertIs(self.old.VALIDATE_INPUTS(self.builtin['id'],'en'),True)
+        self.assertEqual(self.old().load_costume(self.custom['id'],'en')[-1],'My reference')
+
 
 if __name__=='__main__':unittest.main()

@@ -16,6 +16,21 @@ INDEX_FILE = "data/costume-zh.json"
 ASSET_FIELDS = {'png': '原图', 'img': '预览图', 'thumbs': '缩略图'}
 FIELDS = ASSET_FIELDS
 
+LABELS_EN = json.loads((ROOT / 'translations/labels.en.json').read_text(encoding='utf-8'))
+
+def localized(row):
+    category_en = LABELS_EN.get(row.get('分类',''), row.get('分类',''))
+    tags_en = [LABELS_EN.get(tag, tag) for tag in row.get('关键词', [])]
+    if row['origin'] == 'user':
+        name_zh = row['name_zh']
+        name_en = row.get('name_en') or name_zh
+    else:
+        name_zh = ','.join(row.get('关键词', []))
+        name_en = ','.join(tags_en)
+    row.update(category_en=category_en, keywords_list_en=tags_en, name_zh=name_zh, name_en=name_en)
+    row['检索'] = ' '.join((row.get('检索',''),category_en,name_zh,name_en,row.get('英文关键词',''))).lower()
+    return row
+
 @lru_cache(maxsize=8)
 def _read_index(path, modified, size):
     rows = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -59,7 +74,7 @@ def records():
                 if not isinstance(row.get("name_zh"), str) or not row["name_zh"] or not isinstance(row.get("name_en"), str):
                     raise ValueError("自定义素材名称无效")
                 row["source_id"] = ""
-            result.append(row)
+            result.append(localized(row))
     return result
 
 # Keep cache-clear hooks used by existing maintenance scripts and tests.

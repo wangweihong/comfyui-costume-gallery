@@ -8,7 +8,8 @@
         "tooltip": "all：全部；builtin：内置；user：自定义。"
       },
       "language": {
-        "name": "界面与提示语言"
+        "name": "界面与输出语言",
+        "tooltip": "控制界面及文本输出语言，随工作流保存。"
       }
     },
     "outputs": {
@@ -29,6 +30,44 @@
       },
       "5": {
         "name": "英文关键词"
+      },
+      "6": {
+        "name": "服装名称"
+      }
+    }
+  },
+  "CostumeGallery": {
+    "display_name": "Costume Gallery 服装图库",
+    "inputs": {
+      "language": {
+        "name": "界面与输出语言",
+        "tooltip": "控制界面及文本输出语言，随工作流保存。"
+      },
+      "costume_id": {
+        "name": "服装编号"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "图像"
+      },
+      "1": {
+        "name": "宽度"
+      },
+      "2": {
+        "name": "高度"
+      },
+      "3": {
+        "name": "服装编号"
+      },
+      "4": {
+        "name": "描述"
+      },
+      "5": {
+        "name": "英文关键词"
+      },
+      "6": {
+        "name": "服装名称"
       }
     }
   }

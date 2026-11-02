@@ -10,7 +10,7 @@ ComfyUI 本地中文服装图库节点，参考 [ai-costume-gallery-zh](https://
 
 添加 **image → Costume Gallery → Random Costume Gallery 随机服装图库**，将 `image` 接入后续工作流或 Preview Image。每次执行会重新随机抽取一张原图，无需点击随机按钮。`origin` 可选 `all`（全部）、`builtin`（内置）或 `user`（自定义）。保留原分类与关键词语义；自定义素材的英文关键词仍为空，不自动编造标签。
 
-原 **CostumeGallery** 的输入、固定选图、缓存、6个输出和连线均保持不变。新节点沿用这6个输出，所有数据对应同一张实际抽中的素材；执行后显示编号和预览。新节点的 `language` 切换界面、提示及自定义预览名称语言，端口数据仍沿用原节点语义，不补造内置描述的译文。
+原 **CostumeGallery** 保留原有必填输入及前 6 个输出，新增可选 `language` 输入，并在最后追加 `costume` 名称输出。随机节点使用相同的 7 个输出。所有数据对应同一张实际抽中的素材；执行后显示编号和预览。两个节点的 `language` 同时控制界面、详情、描述及 `costume` 名称输出；英文模式使用已收录的英文元数据。
 
 抽样可能偶然重复，不受浏览页面筛选影响；缺失原图会跳过，无可用图片时明确报错。保存的预览编号不参与下次抽样。需要固定结果时，将输出 `costume_id` 填入原节点。新节点本身不会启动或追加任务。
 
@@ -22,7 +22,7 @@ ComfyUI 本地中文服装图库节点，参考 [ai-costume-gallery-zh](https://
 ## 单张上传自定义服装
 
 1. 在独立图库或节点内嵌图库的顶部点击 **上传服装**。
-2. 选择一张现成参考图，查看预览，填写名称。另一语言名称可选；未填写时沿用已有名称，不自动翻译。顶部 **中文 / English** 切换新增上传控件、提示和自定义名称的语言，原有内置图库浏览标签保持中文。
+2. 选择一张现成参考图，查看预览，填写名称。另一语言名称可选；未填写时沿用已有名称，不自动翻译。顶部 **中文 / English** 切换整张图库页面、筛选项、详情、帮助和上传控件，并同步节点的文本输出语言；切换后重新运行以更新输出。
 3. 点击 **保存到图库**。成功后切换到“自定义”来源，清除分类、搜索等筛选，并打开新素材的大图。
 4. 在大图中点击 **使用此服装 → ComfyUI**，写回当前节点；上传和选择都不会自动运行或排队。
 
@@ -59,9 +59,22 @@ ComfyUI 本地中文服装图库节点，参考 [ai-costume-gallery-zh](https://
 
 ![服装节点原图输出实测](docs/comfyui_node_test.png)
 
-## Pose Gallery + 服装图库 + Qwen Image 2.1
+## Qwen Image 2.1 · 换脸换装与姿态编辑
 
-附带[通用三图工作流](example_workflows/pose_costume_qwen21_generic.json)：图一为姿势图库，图二为人物参考，图三为服装图库。使用固定的通用提示词，不写死动作、衣服或性别，切换素材后可直接运行。模型依赖、参考图顺序及完整说明见[三图流程指南](example_workflows/pose_costume_qwen21.md)。
+旧工作流已直接替换并按实际功能命名，不再沿用错误的 MOSS 名称。
+
+| 工作流 | 可视化 JSON | API JSON | 作用 |
+| --- | --- | --- | --- |
+| 01 两阶段换脸换装与姿态编辑 | [导入](example_workflows/01_QwenImage2.1_换脸换装与姿态编辑_两阶段.json) | [API](example_workflows/01_QwenImage2.1_换脸换装与姿态编辑_两阶段.api.json) | 第一阶段换脸换装，第二阶段通过PoseStudio V2迁移姿势 |
+| 02 三图换脸换装 | [导入](example_workflows/02_QwenImage2.1_换脸换装_三图参考.json) | [API](example_workflows/02_QwenImage2.1_换脸换装_三图参考.api.json) | 图1原人物、图2服装、图3目标人像，一次采样完成 |
+
+01 需要同时安装 pose、portrait、costume 三个图库；02 只需要 portrait 和 costume。请先将[附带原人物图](example_workflows/assets/h3_bfs_original_teal_character_20261014.png)复制到 `ComfyUI/input/`，或在 Load Image 中选择自己的参考图。模型路径、参考职责和测试范围见[完整指南](example_workflows/qwen21_gallery_workflows.md)。
+
+01 保留已经成功的第一阶段配置。第二阶段使用**图1姿势图库线稿、图2第一阶段解码成图**，仅第二阶段模型分支加载 QI2.1 PoseStudio V2 LoRA（强度1）。25步、CFG1、Euler/simple、固定种子2026103002。完整链路已实测，第一阶段输出与修复前结果的RGB像素完全相同；P003的背侧转身、回头和扶腰已跟随。其他姿势、手指与服装背面细节仍需检查。
+
+![第一阶段人物与服装替换](docs/images/qwen21_gallery/stage1.png)
+
+![第二阶段姿势编辑](docs/images/qwen21_gallery/stage2.png)
 
 ## 节点输出
 
@@ -70,8 +83,9 @@ ComfyUI 本地中文服装图库节点，参考 [ai-costume-gallery-zh](https://
 | `image` | IMAGE | PNG 原图，RGB，保持原始尺寸；透明区域合成白色背景 |
 | `width` / `height` | INT | 原始图片宽高 |
 | `costume_id` | STRING | 服装编号，如 `SPR-0001` |
-| `description` | STRING | 中文分类及中文关键词 |
+| `description` | STRING | 当前语言的分类及关键词 |
 | `keywords_en` | STRING | 原始英文关键词 |
+| `costume` | STRING | 当前语言的服装名称（内置素材使用逗号分隔关键词） |
 
 标签可能不完整，不能替代完整生成提示词。该节点负责提供服装参考图，本身不执行换装；需要将其输出接入支持图像参考的工作流。
 
@@ -119,3 +133,7 @@ node --check web/gallery.mjs
 ```bash
 node --test tests/test_random_frontend.cjs
 ```
+
+## 名称输出与语言
+
+固定和随机节点都支持 `language=zh/en`，语言随工作流保存。新增第 7 个 `costume` 输出，仅包含当前素材名称，前 6 个端口顺序不变。内置服装没有独立款式名，以已收录的服装关键词组成名称，用英文逗号分隔，不附加分类或编号。自定义素材使用用户填写的对应语言名称，未提供译文的自定义文字沿用原文。图库项目链接指向本仓库。

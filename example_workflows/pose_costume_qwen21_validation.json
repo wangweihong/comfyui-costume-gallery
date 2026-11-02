@@ -45,5 +45,6 @@
     "status": "success",
     "prompt_id": "e9d16966-06bf-4dce-a5d1-0d66077375fa",
     "three_image_links_verified": true
-  }
+  },
+  "scope": "Historical tests for the removed earlier workflow; current examples and their validated input roles are documented in qwen21_gallery_workflows.md."
 }

@@ -1,0 +1,894 @@
+{
+  "id": "bfcf492d-57ce-4ff4-b448-3b640fdb9010",
+  "revision": 1,
+  "last_node_id": 105,
+  "last_link_id": 59,
+  "nodes": [
+    {
+      "id": 23,
+      "type": "CostumeGallery",
+      "pos": [
+        -40.119320551652876,
+        2124.9410964854037
+      ],
+      "size": [
+        419.3072875976562,
+        590
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "label": "图像",
+          "name": "image",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            51
+          ]
+        },
+        {
+          "label": "宽度",
+          "name": "width",
+          "type": "INT",
+          "slot_index": 1,
+          "links": null
+        },
+        {
+          "label": "高度",
+          "name": "height",
+          "type": "INT",
+          "slot_index": 2,
+          "links": null
+        },
+        {
+          "label": "服装编号",
+          "name": "costume_id",
+          "type": "STRING",
+          "slot_index": 3,
+          "links": null
+        },
+        {
+          "label": "描述",
+          "name": "description",
+          "type": "STRING",
+          "slot_index": 4,
+          "links": null
+        },
+        {
+          "label": "英文关键词",
+          "name": "keywords_en",
+          "type": "STRING",
+          "slot_index": 5,
+          "links": []
+        },
+        {
+          "label": "服装名称",
+          "name": "costume",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "title": "Costume Gallery 服装图库 - 选择目标服装参考",
+      "properties": {
+        "Node name for S&R": "CostumeGallery",
+        "ue_properties": {
+          "widget_ue_connectable": {
+            "costume_id": true
+          },
+          "version": "8.0",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "SPR-0085",
+        "zh",
+        "",
+        ""
+      ],
+      "widgets_values_named": {
+        "costume_id": "SPR-0085",
+        "language": "zh",
+        "costume_browser": "",
+        "costume_preview": ""
+      }
+    },
+    {
+      "id": 30,
+      "type": "PortraitGallery",
+      "pos": [
+        -533.35454870374,
+        2128.5922821728673
+      ],
+      "size": [
+        419.4712890625,
+        590
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "label": "Image",
+          "name": "image",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            59
+          ]
+        },
+        {
+          "label": "Width",
+          "name": "width",
+          "type": "INT",
+          "slot_index": 1,
+          "links": null
+        },
+        {
+          "label": "Height",
+          "name": "height",
+          "type": "INT",
+          "slot_index": 2,
+          "links": null
+        },
+        {
+          "label": "Portrait ID",
+          "name": "portrait_id",
+          "type": "STRING",
+          "slot_index": 3,
+          "links": null
+        },
+        {
+          "label": "Description",
+          "name": "description",
+          "type": "STRING",
+          "slot_index": 4,
+          "links": null
+        },
+        {
+          "label": "Reference type",
+          "name": "section",
+          "type": "STRING",
+          "slot_index": 5,
+          "links": null
+        },
+        {
+          "label": "Portrait name",
+          "name": "portrait",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "title": "Portrait Gallery 人像图库 - 选择目标面部身份参考",
+      "properties": {
+        "Node name for S&R": "PortraitGallery",
+        "ue_properties": {
+          "widget_ue_connectable": {
+            "portrait_id": true
+          },
+          "version": "8.0",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "ffadc16064c",
+        "en",
+        "",
+        ""
+      ],
+      "widgets_values_named": {
+        "portrait_id": "ffadc16064c",
+        "language": "en",
+        "portrait_browser": "",
+        "portrait_preview": ""
+      }
+    },
+    {
+      "id": 31,
+      "type": "UNETLoader",
+      "pos": [
+        423.66301998856,
+        1874.9410964854044
+      ],
+      "size": [
+        439.0771240234375,
+        130
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            33
+          ]
+        }
+      ],
+      "title": "Load Diffusion Model - 加载Qwen Image 2.1基础模型",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.43.0",
+        "Node name for S&R": "UNETLoader",
+        "ue_properties": {
+          "widget_ue_connectable": {
+            "unet_name": true,
+            "weight_dtype": true
+          },
+          "version": "8.0",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "image2image/qwen_image_2.1_bf16.safetensors",
+        "default"
+      ],
+      "widgets_values_named": {
+        "unet_name": "image2image/qwen_image_2.1_bf16.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    {
+      "id": 32,
+      "type": "QwenImage21Cache",
+      "pos": [
+        405.9302755908443,
+        2048.5922821728673
+      ],
+      "size": [
+        400.5837158203125,
+        130
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 33
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            38
+          ]
+        }
+      ],
+      "title": "Qwen Image 2.1 Cache - 缓存三图换脸换装参考条件",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.43.0",
+        "Node name for S&R": "QwenImage21Cache",
+        "ue_properties": {
+          "widget_ue_connectable": {
+            "device": true,
+            "dtype": true
+          },
+          "version": "8.0",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "auto",
+        "default"
+      ],
+      "widgets_values_named": {
+        "device": "auto",
+        "dtype": "default"
+      }
+    },
+    {
+      "id": 33,
+      "type": "CLIPLoader",
+      "pos": [
+        423.66301998856,
+        2234.9410964854037
+      ],
+      "size": [
+        350,
+        130
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "slot_index": 0,
+          "links": [
+            34
+          ]
+        }
+      ],
+      "title": "Load CLIP - 加载Qwen3-VL视觉文本编码器",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.43.0",
+        "Node name for S&R": "CLIPLoader",
+        "ue_properties": {
+          "widget_ue_connectable": {
+            "clip_name": true,
+            "type": true,
+            "device": true
+          },
+          "version": "8.0",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "text_encoders/qwen3vl_8b_bf16.safetensors",
+        "qwen_image",
+        "default"
+      ],
+      "widgets_values_named": {
+        "clip_name": "text_encoders/qwen3vl_8b_bf16.safetensors",
+        "type": "qwen_image",
+        "device": "default"
+      }
+    },
+    {
+      "id": 34,
+      "type": "VAELoader",
+      "pos": [
+        423.66301998856,
+        2434.9410964854037
+      ],
+      "size": [
+        350,
+        130
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "slot_index": 0,
+          "links": [
+            37,
+            43
+          ]
+        }
+      ],
+      "title": "Load VAE - 加载Qwen Image 2.1配套VAE",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.43.0",
+        "Node name for S&R": "VAELoader",
+        "ue_properties": {
+          "widget_ue_connectable": {
+            "vae_name": true
+          },
+          "version": "8.0",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "vae/qwen_image_2.1_vae_bf16.safetensors"
+      ],
+      "widgets_values_named": {
+        "vae_name": "vae/qwen_image_2.1_vae_bf16.safetensors"
+      }
+    },
+    {
+      "id": 35,
+      "type": "TextEncodeQwenImage21",
+      "pos": [
+        953.66301998856,
+        1874.9410964854044
+      ],
+      "size": [
+        673.1670766594148,
+        266
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 34
+        },
+        {
+          "name": "images.image_1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 57
+        },
+        {
+          "name": "images.image_2",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 51
+        },
+        {
+          "name": "images.image_3",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 59
+        },
+        {
+          "name": "images.image_4",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "vae",
+          "shape": 7,
+          "type": "VAE",
+          "link": 37
+        }
+      ],
+      "outputs": [
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            39
+          ]
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "slot_index": 1,
+          "links": [
+            40
+          ]
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "slot_index": 2,
+          "links": [
+            41
+          ]
+        }
+      ],
+      "title": "Text Encode Qwen Image 2.1 - 图一原人物图二服装图三目标人像",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.43.0",
+        "Node name for S&R": "TextEncodeQwenImage21",
+        "ue_properties": {
+          "widget_ue_connectable": {
+            "prompt": true,
+            "negative_prompt": true,
+            "resolution": true
+          },
+          "version": "8.0",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "将图1人物把头替换成图3,衣服替换成图2",
+        "",
+        1024
+      ],
+      "widgets_values_named": {
+        "prompt": "将图1人物把头替换成图3,衣服替换成图2",
+        "negative_prompt": "",
+        "resolution": 1024
+      }
+    },
+    {
+      "id": 36,
+      "type": "KSampler",
+      "pos": [
+        1653.66301998856,
+        1874.9410964854044
+      ],
+      "size": [
+        370,
+        474
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 38
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 39
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 40
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 41
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            42
+          ]
+        }
+      ],
+      "title": "KSampler - 25步同时替换人物身份与服装",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.43.0",
+        "Node name for S&R": "KSampler",
+        "ue_properties": {
+          "widget_ue_connectable": {
+            "seed": true,
+            "steps": true,
+            "cfg": true,
+            "sampler_name": true,
+            "scheduler": true,
+            "denoise": true
+          },
+          "version": "8.0",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        2026103002,
+        "fixed",
+        25,
+        1,
+        "euler",
+        "simple",
+        1
+      ],
+      "widgets_values_named": {
+        "seed": 2026103002,
+        "control_after_generate": "fixed",
+        "steps": 25,
+        "cfg": 1,
+        "sampler_name": "euler",
+        "scheduler": "simple",
+        "denoise": 1
+      }
+    },
+    {
+      "id": 37,
+      "type": "VAEDecode",
+      "pos": [
+        2223.66301998856,
+        1874.9410964854044
+      ],
+      "size": [
+        350,
+        230
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 42
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 43
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            44
+          ]
+        }
+      ],
+      "title": "VAE Decode - 解码人物换脸换装结果",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.43.0",
+        "Node name for S&R": "VAEDecode",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "8.0",
+          "input_ue_unconnectable": {}
+        }
+      }
+    },
+    {
+      "id": 38,
+      "type": "SaveImage",
+      "pos": [
+        2601.8370377314986,
+        1865.9410964854042
+      ],
+      "size": [
+        420,
+        580
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 44
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": null
+        }
+      ],
+      "title": "Save Image - 保存单阶段三图换脸换装结果",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.43.0",
+        "Node name for S&R": "SaveImage",
+        "ue_properties": {
+          "widget_ue_connectable": {
+            "filename_prefix": true
+          },
+          "version": "8.0",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "images/qwen/gallery/results/face_swap"
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "images/qwen/gallery/results/face_swap"
+      }
+    },
+    {
+      "id": 104,
+      "type": "LoadImage",
+      "pos": [
+        -506.33698001144,
+        1744.9410964854044
+      ],
+      "size": [
+        270,
+        338
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            57
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.43.0",
+        "Node name for S&R": "LoadImage",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "8.0"
+        }
+      },
+      "widgets_values": [
+        "h3_bfs_original_teal_character_20261014.png",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "h3_bfs_original_teal_character_20261014.png",
+        "upload": "image"
+      },
+      "title": "Load Image - 选择原始人物与构图参考"
+    },
+    {
+      "id": 105,
+      "type": "MarkdownNote",
+      "pos": [
+        -450,
+        2850
+      ],
+      "size": [
+        1200,
+        330
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MarkdownNote"
+      },
+      "widgets_values": [
+        "# Qwen Image 2.1 · 三图换脸换装\n\n图1：Load Image 原人物图，保留构图和身体姿态。\n图2：Costume Gallery 目标服装图。\n图3：Portrait Gallery 目标面部身份图。\n\n仅使用一阶段Qwen采样：25步、CFG1、Euler/simple、固定种子2026103002。\n不使用MOSS，不包含第二阶段姿势编辑，不需要PoseStudio LoRA。\n如需换姿势，请使用01号两阶段工作流。\n\n自带参考图在各仓库example_workflows/assets目录，复制到ComfyUI/input/后导入。\n保存结果：output/images/qwen/gallery/results/face_swap_*.png。"
+      ],
+      "title": "MarkdownNote - 三张参考图分工与依赖说明"
+    }
+  ],
+  "links": [
+    [
+      33,
+      31,
+      0,
+      32,
+      0,
+      "MODEL"
+    ],
+    [
+      38,
+      32,
+      0,
+      36,
+      0,
+      "MODEL"
+    ],
+    [
+      42,
+      36,
+      0,
+      37,
+      0,
+      "LATENT"
+    ],
+    [
+      43,
+      34,
+      0,
+      37,
+      1,
+      "VAE"
+    ],
+    [
+      44,
+      37,
+      0,
+      38,
+      0,
+      "IMAGE"
+    ],
+    [
+      39,
+      35,
+      0,
+      36,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      40,
+      35,
+      1,
+      36,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      41,
+      35,
+      2,
+      36,
+      3,
+      "LATENT"
+    ],
+    [
+      34,
+      33,
+      0,
+      35,
+      0,
+      "CLIP"
+    ],
+    [
+      57,
+      104,
+      0,
+      35,
+      1,
+      "IMAGE"
+    ],
+    [
+      51,
+      23,
+      0,
+      35,
+      2,
+      "IMAGE"
+    ],
+    [
+      59,
+      30,
+      0,
+      35,
+      3,
+      "IMAGE"
+    ],
+    [
+      37,
+      34,
+      0,
+      35,
+      5,
+      "VAE"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 3,
+      "title": "Qwen Image 2.1：三图换脸换装（单阶段）",
+      "bounding": [
+        -506.33698001144,
+        1714.9410964854044,
+        3590,
+        1030
+      ],
+      "color": "#856755",
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "workflowName": "02_QwenImage2.1_换脸换装_三图参考",
+    "ds": {
+      "scale": 1.0253245506747657,
+      "offset": [
+        100.4946138957007,
+        -1586.100623106503
+      ]
+    },
+    "ue_links": [],
+    "links_added_by_ue": [],
+    "frontendVersion": "1.57.4",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
+  },
+  "version": 0.4,
+  "seed_widgets": {
+    "36": 0
+  },
+  "widget_idx_map": {
+    "36": {
+      "seed": 0,
+      "sampler_name": 4,
+      "scheduler": 5
+    }
+  }
+}

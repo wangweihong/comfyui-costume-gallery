@@ -17,37 +17,40 @@ from .catalog import USER_LIBRARY, metadata, browser_payload, records, costume, 
 class CostumeGallery:
     @classmethod
     def INPUT_TYPES(cls):
-        return {'required': {'costume_id': ('STRING', {'default': 'SPR-0001', 'multiline': False, 'tooltip': '点击浏览服装图库，按中文、英文或编号搜索，再使用此服装。'})}}
+        return {'required': {'costume_id': ('STRING', {'default': 'SPR-0001', 'multiline': False, 'tooltip': '点击浏览服装图库，按中文、英文或编号搜索，再使用此服装。'})}, 'optional':{'language':(['zh','en'],{'default':'zh','tooltip':'界面与文本输出语言 / UI and text output language'})}}
 
-    RETURN_TYPES = ('IMAGE', 'INT', 'INT', 'STRING', 'STRING', 'STRING')
-    RETURN_NAMES = ('image', 'width', 'height', 'costume_id', 'description', 'keywords_en')
+    RETURN_TYPES = ('IMAGE', 'INT', 'INT', 'STRING', 'STRING', 'STRING', 'STRING')
+    RETURN_NAMES = ('image', 'width', 'height', 'costume_id', 'description', 'keywords_en', 'costume')
     FUNCTION = 'load_costume'
     CATEGORY = 'image/Costume Gallery'
     DESCRIPTION = '本地服装图库：分类搜索和单张自定义上传，输出完整参考图；自定义素材不补造英文关键词。'
 
     @classmethod
-    def VALIDATE_INPUTS(cls, costume_id):
+    def VALIDATE_INPUTS(cls, costume_id, language="zh"):
         try:
             row = costume(costume_id)
             asset('png', Path(row['原图']).name)
         except (ValueError, FileNotFoundError) as exc:
-            return str(exc)
+            return ("Cannot load costume. Check the ID and the complete library." if language == "en" else str(exc))
         return True
 
     @classmethod
-    def IS_CHANGED(cls, costume_id):
+    def IS_CHANGED(cls, costume_id, language="zh"):
         row = costume(costume_id)
-        return hashlib.sha256(asset('png', Path(row['原图']).name).read_bytes()).hexdigest()
+        return hashlib.sha256(asset('png', Path(row['原图']).name).read_bytes()).hexdigest() + ":" + language
 
-    def load_costume(self, costume_id):
+    def load_costume(self, costume_id, language="zh"):
         row = costume(costume_id)
         with Image.open(asset('png', Path(row['原图']).name)) as source:
             img = ImageOps.exif_transpose(source).convert('RGBA')
             img = Image.alpha_composite(Image.new('RGBA', img.size, 'white'), img).convert('RGB')
             width, height = img.size
             tensor = torch.from_numpy(np.asarray(img).astype(np.float32) / 255.0).unsqueeze(0)
-        description = row['分类'] + ' / ' + (row['name_zh'] if row['origin'] == 'user' else '、'.join(row['关键词']))
-        return tensor, width, height, costume_id, description, row['英文关键词']
+        lang = 'en' if language == 'en' else 'zh'
+        category = row['category_en'] if lang == 'en' else row['分类']
+        details = row['name_'+lang] if row['origin'] == 'user' else (' · '.join(row['keywords_list_en']) if lang == 'en' else '、'.join(row['关键词']))
+        description = category + ' / ' + details
+        return tensor, width, height, costume_id, description, row['英文关键词'], row['name_'+lang]
 
 class RandomCostumeGallery(CostumeGallery):
     @classmethod
@@ -55,10 +58,10 @@ class RandomCostumeGallery(CostumeGallery):
         return {"required": {"origin": (["all", "builtin", "user"], {"default": "all",
                     "tooltip": "随机来源：全部 / 内置 / 自定义。Random source: all / built-in / custom."})},
                 "optional": {"language": (["zh", "en"], {"default": "zh",
-                    "tooltip": "新节点界面与提示语言；数据输出沿用原节点。UI/error language; data outputs retain the original node's semantics."})}}
+                    "tooltip": "界面与文本输出语言 / UI and text output language"})}}
 
     FUNCTION = "load_random"
-    DESCRIPTION = "每次运行工作流时，从可用服装原图中自动随机抽取一张；保留原节点的6个输出。"
+    DESCRIPTION = "每次运行工作流时，从可用服装原图中自动随机抽取一张；输出参考图、描述和当前名称。"
 
     @classmethod
     def _candidates(cls, origin="all", language="zh"):
@@ -96,12 +99,10 @@ class RandomCostumeGallery(CostumeGallery):
 
     def load_random(self, origin="all", language="zh"):
         selected = random.choice(self._candidates(origin, language))
-        result = super().load_costume(selected["id"])
-        if selected["origin"] == "user":
-            name = selected["name_en"] if language == "en" else selected["name_zh"]
-        else:
-            name = selected.get("姿势名称") or selected.get("title") or selected.get("分类") or selected["id"]
-        return {"ui": {"costume_id": [result[3]], "name": [name]}, "result": result}
+        result = super().load_costume(selected["id"], language)
+        row = _random_catalog.localized(dict(selected))
+        name = row['name_en'] if language == 'en' else row['name_zh']
+        return {"ui": {"costume_id": [result[3]], "name": [name], "name_zh": [row["name_zh"]], "name_en": [row["name_en"]]}, "result": result}
 
 
 routes = PromptServer.instance.routes
@@ -123,7 +124,7 @@ async def asset_route(request):
 @routes.get('/costume_gallery/web/{filename}')
 async def web_route(request):
     filename = request.match_info['filename']
-    if filename not in ('gallery.mjs', 'style.css', 'icon.svg', 'custom_upload.mjs', 'custom_upload.css'):
+    if filename not in ('gallery.mjs', 'style.css', 'icon.svg', 'custom_upload.mjs', 'custom_upload.css', 'i18n.mjs'):
         raise web.HTTPNotFound()
     return web.FileResponse(ROOT / 'web' / filename, headers={'Cache-Control': 'no-cache'})
 

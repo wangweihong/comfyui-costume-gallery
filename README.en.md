@@ -40,7 +40,7 @@ Clone `https://github.com/wangweihong/comfyui-costume-gallery.git` inside `Comfy
 
 Category is optional and defaults to Unspecified. User names remain names rather than inferred clothing tags. The keywords_en output is an empty string for custom uploads.
 
-Static PNG, JPEG and WebP are supported, one image at a time, up to **20 MiB and 32 megapixels**. The server validates actual content and rejects animation, damaged images and paths outside the library. Full images are normalized to PNG while preserving dimensions and transparency. WebP previews fit within 800×1000 and thumbnails within 400×500, without stretching. Node IMAGE outputs composite transparency onto white. **Import does not extract a subject, remove backgrounds or edit people.** This version does not include batch import, editing or deletion.
+Static PNG, JPEG and WebP are supported, one image at a time, up to **20 MiB and 32 megapixels**. The server validates actual content and rejects animation, damaged images and paths outside the library. Full images are normalized to PNG while preserving dimensions and transparency. WebP previews fit within 800×1000 and thumbnails within 400×500, without stretching. Node IMAGE outputs composite transparency onto white. **Import does not extract a subject, remove backgrounds or edit people.** Custom uploads do not yet support batch import, editing or deletion. Built-in assets can be deleted or replaced using Edit.
 
 ## Persistent user library
 
@@ -70,3 +70,15 @@ node --test tests/test_random_frontend.cjs
 Independent program code retains its existing license. Built-in images and source data retain their original terms; consult the source and license notices linked from the [Chinese README](README.md). Custom uploads are not attributed to the built-in dataset.
 
 The `costume` output contains only the selected reference name. Built-in costumes have no separate style name, so this output joins the recorded clothing keywords with commas, without a category or ID prefix. Uploaded references use the supplied name for the selected language. Existing output connections remain compatible. The gallery GitHub link points to this repository.
+
+## Delete and replace built-in assets
+
+- Click **Edit**, select cards and choose **Delete selected assets**. Existing filters and select-all apply to the current results. Assets are independent; matching names or source IDs are never grouped. Custom uploads are excluded.
+- **Delete** and **Replace** appear below **Open in new window** in the viewer. Deletion removes the asset files and frees storage. Replacement accepts static PNG/JPEG/WebP, up to 20 MiB and 32 megapixels, preserves the ID and metadata, and updates all image derivatives.
+- **Manage built-in assets** is only for handling earlier changes after a plugin update. Choose independently whether to repeat deletions and use replacement images, then **Apply**. No image selection is needed. Reports include deleted, replaced, kept and failed assets. Keeping built-ins stops the matching earlier action; missing restored files produce an error and retain the record for retry.
+
+Startup, browsing and updates never automatically delete or replace files. Records live in `ComfyUI/user/costume_gallery/data/builtin_changes.json`; replacement sources live in `ComfyUI/user/costume_gallery/replacements/<id>/<revision>/`. Back up both. Clients of the same service share these files. Replacement sources and older revisions are retained. Working-tree deletion does not remove Git history objects.
+
+Deleted IDs produce clear errors in fixed workflows and are excluded from random sampling. Replacements keep IDs and update node images. Operations are restricted to registered built-in paths and reject symlinks and path traversal. Restart ComfyUI after deployment and refresh the page. New controls remain hidden until their backend is available.
+
+API: `GET /costume_gallery/manage/summary`; `POST /costume_gallery/manage/plan` with `{ids, mode}` or `{choices: {deleted: "delete" / "keep", replaced: "replace" / "keep"}}`; `POST /costume_gallery/manage/apply` with `{request, token}`; multipart `POST /costume_gallery/manage/replacement` with `id` and `image`.

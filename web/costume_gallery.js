@@ -22,11 +22,11 @@ app.registerExtension({
       error.style.cssText='display:none;position:absolute;inset:15px;place-items:center;color:#9a493c;font:13px/1.7 sans-serif;overflow-wrap:anywhere;';
       box.append(image,error);
       const errorText=()=>t('服装原图加载失败：{path}。请检查完整素材库，重启 ComfyUI 并刷新页面。',{path:`library/png/${widget.value}.png`});
-      const update=()=>{
+      const update=(version='')=>{
         const current=++requestId;image.style.display='block';error.style.display='none';
         image.onload=()=>{if(current===requestId){image.style.display='block';error.style.display='none';}};
         image.onerror=()=>{if(current===requestId){image.style.display='none';error.textContent=errorText();error.style.display='grid';}};
-        image.src=api.apiURL(`/costume_gallery/assets/png/${encodeURIComponent(String(widget.value))}.png`);image.title=widget.value;
+        image.src=api.apiURL(`/costume_gallery/assets/png/${encodeURIComponent(String(widget.value))}.png${version?'?v='+encodeURIComponent(version):''}`);image.title=widget.value;
       };
       const close=()=>{window.removeEventListener('message',receive);dialog?.remove();dialog=null;frame=null;headerTitle=null;done=null;};
       const setLanguage=(value,notify=true)=>{
@@ -45,6 +45,7 @@ app.registerExtension({
       };
       const receive=event=>{
         if(event.origin!==location.origin||event.source!==frame?.contentWindow)return;
+        if(event.data?.type==='costume-gallery-library-changed'){update(Date.now().toString());return;}
         if(event.data?.type==='costume-gallery-ready'){
           frame.contentWindow.postMessage({type:'costume-gallery-current',id:widget.value},location.origin);
           frame.contentWindow.postMessage({type:'costume-gallery-language',language},location.origin);

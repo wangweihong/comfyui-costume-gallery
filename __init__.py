@@ -1,5 +1,6 @@
 """ComfyUI costume gallery with bundled original images and thumbnails."""
 import asyncio
+import json
 import logging
 import random
 import uuid
@@ -12,6 +13,7 @@ from PIL import Image, ImageOps
 from aiohttp import web
 from server import PromptServer
 from .uploads import import_image, UploadError, MAX_BYTES
+from . import management
 from .catalog import USER_LIBRARY, metadata, browser_payload, records, costume, asset, ROOT
 
 class CostumeGallery:
@@ -110,21 +112,21 @@ routes = PromptServer.instance.routes
 @routes.get('/costume_gallery/catalog')
 async def catalog_route(request):
     try:
-        return web.json_response(records())
+        return web.json_response(records(availability=True), headers={"Cache-Control":"no-store"})
     except (ValueError, FileNotFoundError) as exc:
         return web.json_response({'error': str(exc)}, status=503)
 
 @routes.get('/costume_gallery/assets/{kind}/{filename}')
 async def asset_route(request):
     try:
-        return web.FileResponse(asset(request.match_info['kind'], request.match_info['filename']), headers={'Cache-Control': 'private, max-age=3600'})
+        return web.FileResponse(asset(request.match_info['kind'], request.match_info['filename']), headers={'Cache-Control': 'private, no-cache'})
     except (ValueError, FileNotFoundError):
         raise web.HTTPNotFound()
 
 @routes.get('/costume_gallery/web/{filename}')
 async def web_route(request):
     filename = request.match_info['filename']
-    if filename not in ('gallery.mjs', 'style.css', 'icon.svg', 'custom_upload.mjs', 'custom_upload.css', 'i18n.mjs'):
+    if filename not in ('gallery.mjs', 'style.css', 'icon.svg', 'custom_upload.mjs', 'custom_upload.css', 'i18n.mjs', 'library_manager.mjs', 'library_manager.css', 'asset_editor.mjs'):
         raise web.HTTPNotFound()
     return web.FileResponse(ROOT / 'web' / filename, headers={'Cache-Control': 'no-cache'})
 
@@ -194,3 +196,90 @@ NODE_CLASS_MAPPINGS = {"CostumeGallery": CostumeGallery, "RandomCostumeGallery":
 NODE_DISPLAY_NAME_MAPPINGS = {'CostumeGallery': 'Costume Gallery 服装图库', 'RandomCostumeGallery': 'Random Costume Gallery 随机服装图库'}
 WEB_DIRECTORY = './web'
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS', 'WEB_DIRECTORY']
+
+
+async def management_response(function, *args, **kwargs):
+    try:
+        result = await asyncio.to_thread(function, *args, **kwargs)
+        return web.json_response(result, headers={"Cache-Control": "no-store"})
+    except (management.ManagementError, UploadError) as exc:
+        return web.json_response({"error": exc.code}, status=exc.status)
+    except (ValueError, TypeError, KeyError):
+        return web.json_response({"error": "invalid_management_data"}, status=400)
+    except OSError:
+        logging.exception("Unable to manage pose library")
+        return web.json_response({"error": "storage_error"}, status=500)
+
+
+async def management_json(request):
+    data = bytearray()
+    async for chunk in request.content.iter_chunked(8192):
+        data.extend(chunk)
+        if len(data) > 256 * 1024:
+            raise management.ManagementError("invalid_request", 413)
+    try:
+        value = json.loads(data)
+    except (ValueError, UnicodeError) as exc:
+        raise management.ManagementError("invalid_request") from exc
+    if not isinstance(value, dict):
+        raise management.ManagementError("invalid_request")
+    return value
+
+
+@routes.get("/costume_gallery/manage")
+async def management_status_route(request):
+    return await management_response(management.library_status)
+
+
+@routes.get("/costume_gallery/manage/summary")
+async def management_summary_route(request):
+    return await management_response(management.update_summary)
+
+
+@routes.post("/costume_gallery/manage/plan")
+async def management_plan_route(request):
+    try:
+        data = await management_json(request)
+    except management.ManagementError as exc:
+        return web.json_response({"error": exc.code}, status=exc.status)
+    if set(data) - {"ids", "mode", "choices"}:
+        return web.json_response({"error": "invalid_request"}, status=400)
+    return await management_response(management.make_plan, **data)
+
+
+@routes.post("/costume_gallery/manage/apply")
+async def management_apply_route(request):
+    try:
+        data = await management_json(request)
+    except management.ManagementError as exc:
+        return web.json_response({"error": exc.code}, status=exc.status)
+    if set(data) != {"request", "token"}:
+        return web.json_response({"error": "invalid_request"}, status=400)
+    return await management_response(management.apply_plan, data["request"], data["token"])
+
+
+@routes.post("/costume_gallery/manage/replacement")
+async def management_replacement_route(request):
+    try:
+        multipart = await request.multipart()
+        data, identity = None, None
+        async for part in multipart:
+            limit = MAX_BYTES if part.name == "image" else 80
+            if part.name not in ("image", "id") or (part.name == "image" and data is not None) or (part.name == "id" and identity is not None):
+                raise management.ManagementError("invalid_request")
+            content = bytearray()
+            while chunk := await part.read_chunk():
+                content.extend(chunk)
+                if len(content) > limit:
+                    raise UploadError("file_too_large", 413) if part.name == "image" else management.ManagementError("invalid_request")
+            if part.name == "image":
+                data = bytes(content)
+            else:
+                identity = content.decode("utf-8")
+        if data is None or identity is None:
+            raise management.ManagementError("invalid_request")
+    except (management.ManagementError, UploadError) as exc:
+        return web.json_response({"error": exc.code}, status=exc.status)
+    except (ValueError, UnicodeError, AssertionError):
+        return web.json_response({"error": "invalid_request"}, status=400)
+    return await management_response(management.stage_replacement, identity, data)

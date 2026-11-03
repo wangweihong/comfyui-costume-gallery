@@ -7,6 +7,7 @@ const applyLanguage=I.watchPage(()=>language);
 let records = [], filtered = [], category = '', shown = 0, current = 0;
 const PAGE = 60;
 let selectedId = '';
+let editor;
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -38,7 +39,9 @@ function applyFilters() {
 function appendPage() {
   const start = shown;
   const cards = filtered.slice(start, start + PAGE).map((r, i) => {
-    const button = element('button', undefined, 'card');
+    const button = element('article', undefined, 'card');
+    button.dataset.id=r.id;button.tabIndex=0;button.setAttribute('role','button');
+    button.addEventListener('keydown',event=>{if(event.target===button&&['Enter',' '].includes(event.key)){event.preventDefault();button.click();}});
     button.setAttribute('aria-label', t('查看 {id} {category}',{id:r.id,category:t(r.分类)}));
     button.setAttribute('aria-current', String(r.id === selectedId));
     const img = element('img');
@@ -50,13 +53,13 @@ function appendPage() {
     heading.append(element('h3', r.origin==='user'?uploads.name(r):r.id), element('span', r.origin==='user'?(uploads.language==='en'?'Custom':'自定义'):r.分类, 'card-cat'));
     info.append(heading, element('p', r.关键词.join(' · ')));
     button.append(img, info);
-    button.addEventListener('click', () => { current = start + i; showDetail(); $('viewer').showModal(); });
+    button.addEventListener('click', () => { current = start + i; showDetail(); $('viewer').showModal();editor?.paint(); });
     return button;
   });
   $('grid').append(...cards); shown += cards.length;
   $('status').textContent = `共 ${filtered.length.toLocaleString()} 套 · 已显示 ${shown.toLocaleString()} 套`;
   $('more').hidden = shown >= filtered.length;
-  $('more').textContent = `加载更多（剩余 ${filtered.length - shown} 套）`;
+  $('more').textContent = `加载更多（剩余 ${filtered.length - shown} 套）`;editor?.paint();
 }
 function showDetail() {
   const r = filtered[current];
@@ -79,7 +82,7 @@ function showDetail() {
   $('prev').disabled = current === 0; $('next').disabled = current === filtered.length - 1;
   $('copy').textContent = '复制 ID';
   $('use-costume').disabled = window.parent === window;
-  $('use-costume').textContent = window.parent === window ? '请从 ComfyUI 节点打开以使用服装' : '使用此服装 → ComfyUI';
+  $('use-costume').textContent = window.parent === window ? '请从 ComfyUI 节点打开以使用服装' : '使用此服装 → ComfyUI';editor?.paint();
 }
 $('q').addEventListener('input', applyFilters);
 $('reset').addEventListener('click', () => { category = ''; $('q').value = ''; applyFilters(); });
@@ -128,13 +131,13 @@ for (const dialog of [$('viewer'), $('guide')]) dialog.addEventListener('click',
   const box = dialog.getBoundingClientRect();
   if (e.target === dialog && (e.clientX < box.left || e.clientX > box.right || e.clientY < box.top || e.clientY > box.bottom)) dialog.close();
 });
-const assetRows=rows=>{I.registerRows(rows);return rows.map(row=>({...row,缩略图:`assets/thumbs/${row.id}.webp`,预览图:`assets/img/${row.id}.webp`,原图:`assets/png/${row.id}.png`}));};
+const assetRows=rows=>{I.registerRows(rows);return rows.map(row=>({...row,缩略图:`assets/thumbs/${row.id}.webp${row.asset_version?'?v='+encodeURIComponent(row.asset_version):''}`,预览图:`assets/img/${row.id}.webp${row.asset_version?'?v='+encodeURIComponent(row.asset_version):''}`,原图:`assets/png/${row.id}.png${row.asset_version?'?v='+encodeURIComponent(row.asset_version):''}`}));};
 const uploads=window.GalleryUploads.mount({kind:'costume',language,toolbar:document.querySelector('.topbar nav'),filters:document.querySelector('.library'),
   onSource(){applyFilters();},onLanguage(value){setLanguage(value);},
-  onUploaded(payload,id){records=assetRows(payload.records);category='';$('q').value='';$('total').textContent=`${records.length.toLocaleString()} 套 / ${new Set(records.map(r=>r.分类)).size} 个分类`;applyFilters();current=filtered.findIndex(r=>r.id===id);if(current>=0){showDetail();$('viewer').showModal();}}
+  onUploaded(payload,id){records=assetRows(payload.records);category='';$('q').value='';$('total').textContent=`${records.length.toLocaleString()} 套 / ${new Set(records.map(r=>r.分类)).size} 个分类`;applyFilters();current=filtered.findIndex(r=>r.id===id);if(current>=0){showDetail();$('viewer').showModal();editor?.paint();}}
 });
 function setLanguage(value,notify=true){
-  language=I.normalize(value);I.persist(language);uploads.setLanguage(language,false);
+  language=I.normalize(value);editor?.setLanguage(language);I.persist(language);uploads.setLanguage(language,false);
   const id=$('viewer').open?filtered[current]?.id:null;
   const visible=shown;
   applyFilters();while(shown<visible&&shown<filtered.length)appendPage();
@@ -144,6 +147,17 @@ function setLanguage(value,notify=true){
 }
 window.addEventListener('message',event=>{
   if(event.origin===location.origin&&event.source===window.parent&&event.data?.type==='costume-gallery-language'&&['zh','en'].includes(event.data.language))setLanguage(event.data.language,false);
+});
+editor=window.GalleryAssetEditor.mount({
+  language,toolbar:document.querySelector('.topbar nav'),feedback:document.querySelector('.library'),grid:$('grid'),cardSelector:'.card',openLink:$('open-original'),
+  translate:(value,lang)=>I.translate(value,lang),records:()=>records,visible:()=>filtered,current:()=>$('viewer').open?filtered[current]:null,
+  async reload({keepId}={}){
+    $('viewer').close();
+    const [rows,stats]=await Promise.all([fetch('catalog',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error();return r.json();}),fetch('meta',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error();return r.json();})]);
+    records=assetRows(rows);uploads.update(stats);$('total').textContent=`${records.length.toLocaleString()} 套 / ${new Set(records.map(r=>r.分类)).size} 个分类`;applyFilters();
+    if(keepId){current=filtered.findIndex(row=>row.id===keepId);if(current>=0){showDetail();$('viewer').showModal();editor?.paint();}}
+    window.parent.postMessage({type:'costume-gallery-library-changed'},location.origin);
+  }
 });
 setLanguage(uploads.language,false);
 async function init() {

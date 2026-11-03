@@ -47,8 +47,35 @@ def read_index(root, relative):
     stat = path.stat()
     return _read_index(str(path), stat.st_mtime_ns, stat.st_size)
 
-def records():
+def management_rules():
+    """Read desired states only. Reading a catalog never changes library files."""
+    path = (USER_LIBRARY / "data/builtin_changes.json").resolve()
+    if not path.is_relative_to(USER_LIBRARY):
+        raise ValueError("素材管理记录路径越界")
+    if not path.exists():
+        return {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict) or payload.get("version") != 1 or not isinstance(payload.get("rules"), dict):
+        raise ValueError("素材管理记录格式错误")
+    rules = payload["rules"]
+    for identity, rule in rules.items():
+        if (not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", identity) or identity.startswith("u-")
+                or not isinstance(rule, dict) or rule.get("mode") not in ("thumb_only", "removed", "replace")):
+            raise ValueError("素材管理记录无效")
+        if rule["mode"] == "replace":
+            if (not isinstance(rule.get("revision"), str) or not re.fullmatch(r"[a-f0-9]{32}", rule["revision"])
+                    or any(type(rule.get(key)) is not int or rule[key] < 1 for key in ("w", "h"))
+                    or rule["w"] * rule["h"] > 32_000_000
+                    or not isinstance(rule.get("hashes"), dict)
+                    or set(rule["hashes"]) != set(ASSET_FIELDS)
+                    or any(not isinstance(value, str) or not re.fullmatch(r"[a-f0-9]{64}", value) for value in rule["hashes"].values())):
+                raise ValueError("替换素材记录无效")
+    return rules
+
+
+def records(include_removed=False, availability=False):
     result, seen = [], set()
+    rules = management_rules()
     for origin, root, file in [("builtin", LIBRARY, INDEX_FILE), ("user", USER_LIBRARY, "data/custom.json")]:
         for entry in read_index(root, file):
             row = dict(entry) if isinstance(entry, dict) else {}
@@ -70,6 +97,16 @@ def records():
                 if row[field] != expected:
                     raise ValueError("图库索引含无效图片路径")
             row["origin"] = origin
+            if origin == "builtin":
+                rule = rules.get(identity, {})
+                row["management_state"] = rule.get("mode", "default")
+                if rule.get("mode") == "removed" and not include_removed:
+                    continue
+                if rule.get("mode") == "replace":
+                    row.update(w=rule["w"], h=rule["h"], asset_version=rule["revision"], bytes=rule.get("bytes", row.get("bytes", 0)))
+                if availability:
+                    target = (root / row[ASSET_FIELDS[FULL_KIND]]).resolve()
+                    row["original_available"] = rule.get("mode") not in ("removed", "thumb_only") and target.is_relative_to(root) and target.is_file()
             if origin == "user":
                 if not isinstance(row.get("name_zh"), str) or not row["name_zh"] or not isinstance(row.get("name_en"), str):
                     raise ValueError("自定义素材名称无效")
@@ -80,22 +117,26 @@ def records():
 # Keep cache-clear hooks used by existing maintenance scripts and tests.
 records.cache_clear = _read_index.cache_clear
 
-def index():
-    return {row["id"]: row for row in records()}
+def index(include_removed=False):
+    return {row["id"]: row for row in records(include_removed=include_removed)}
 index.cache_clear = _read_index.cache_clear
 
-def costume(identity):
+def costume(identity, include_removed=False):
     if not isinstance(identity, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", identity):
         raise ValueError("无效素材 ID")
-    row = index().get(identity)
+    row = index(include_removed=include_removed).get(identity)
     if row is None:
+        if management_rules().get(identity, {}).get("mode") == "removed":
+            raise ValueError("素材已删除。请先补回内置素材，再在“管理内置素材”中选择保留。Asset deleted; restore built-in files and choose to keep them in Manage built-in assets.")
         raise ValueError("未知素材 ID：" + identity)
     return row
 
 def asset(kind, filename):
     if kind not in ASSET_FIELDS or Path(filename).name != filename or "\\" in filename:
         raise ValueError("无效图片路径")
-    row = costume(Path(filename).stem)
+    row = costume(Path(filename).stem, include_removed=kind != FULL_KIND)
+    if kind == FULL_KIND and row.get("management_state") == "thumb_only":
+        raise FileNotFoundError("素材已删除，请先补回内置素材。Asset deleted; restore built-in files first.")
     root = USER_LIBRARY if row["origin"] == "user" else LIBRARY
     relative = f"{PREFIXES[kind]}/{filename}"
     target = (root / relative).resolve()
@@ -113,7 +154,7 @@ def metadata():
             "sections":{section:sum(r.get("section") == section for r in rows) for section in ("face", "styling", "custom")}}
 
 def browser_payload():
-    rows = records()
+    rows = records(availability=True)
     meta = metadata()
     return {"records":rows, "meta":meta}
 

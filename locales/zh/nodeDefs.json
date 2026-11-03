@@ -1,7 +1,7 @@
 {
   "RandomCostumeGallery": {
     "display_name": "Random Costume Gallery 随机服装图库",
-    "description": "每次运行自动重新抽取参考图，原节点保持不变。",
+    "description": "点击骰子随机预览服装，锁定后运行工作流保持当前服装。",
     "inputs": {
       "origin": {
         "name": "随机来源",
@@ -10,6 +10,14 @@
       "language": {
         "name": "界面与输出语言",
         "tooltip": "控制界面及文本输出语言，随工作流保存。"
+      },
+      "costume_id": {
+        "name": "当前服装编号",
+        "tooltip": "当前选择的服装，锁定后运行工作流使用此图。"
+      },
+      "locked": {
+        "name": "锁定随机",
+        "tooltip": "保持当前选择并禁用骰子。"
       }
     },
     "outputs": {

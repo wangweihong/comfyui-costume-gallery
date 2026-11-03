@@ -60,10 +60,14 @@ class RandomCostumeGallery(CostumeGallery):
         return {"required": {"origin": (["all", "builtin", "user"], {"default": "all",
                     "tooltip": "随机来源：全部 / 内置 / 自定义。Random source: all / built-in / custom."})},
                 "optional": {"language": (["zh", "en"], {"default": "zh",
-                    "tooltip": "界面与文本输出语言 / UI and text output language"})}}
+                    "tooltip": "界面与文本输出语言 / UI and text output language"}),
+                    "costume_id": ("STRING", {"default": "", "multiline": False,
+                        "tooltip": "骰子当前选中的服装；锁定后使用此图。Current dice selection; used while locked."}),
+                    "locked": ("BOOLEAN", {"default": False,
+                        "tooltip": "锁定当前服装，点击骰子和运行工作流都不再随机。Keep this selection for dice clicks and workflow runs."})}}
 
     FUNCTION = "load_random"
-    DESCRIPTION = "每次运行工作流时，从可用服装原图中自动随机抽取一张；输出参考图、描述和当前名称。"
+    DESCRIPTION = "点击骰子即可随机预览，无需运行工作流；锁定后固定当前服装，解锁后每次运行重新随机。"
 
     @classmethod
     def _candidates(cls, origin="all", language="zh"):
@@ -73,6 +77,8 @@ class RandomCostumeGallery(CostumeGallery):
         # records() validates registration and canonical paths once for the whole pool.
         # Resolve against the correct root here to avoid reloading the entire index per file.
         for row in records():
+            if row.get("management_state") in ("thumb_only", "removed"):
+                continue
             if origin != "all" and row["origin"] != origin:
                 continue
             root = _random_catalog.USER_LIBRARY if row["origin"] == "user" else _random_catalog.LIBRARY
@@ -87,7 +93,11 @@ class RandomCostumeGallery(CostumeGallery):
         return available
 
     @classmethod
-    def VALIDATE_INPUTS(cls, origin="all", language="zh"):
+    def VALIDATE_INPUTS(cls, origin="all", language="zh", costume_id="", locked=False):
+        if locked:
+            if not costume_id:
+                return "Draw a costume before locking" if language == "en" else "请先点击骰子选择服装，再锁定"
+            return super().VALIDATE_INPUTS(costume_id, language)
         try:
             cls._candidates(origin, language)
         except (ValueError, OSError) as exc:
@@ -95,19 +105,44 @@ class RandomCostumeGallery(CostumeGallery):
         return True
 
     @classmethod
-    def IS_CHANGED(cls, origin="all", language="zh"):
+    def IS_CHANGED(cls, origin="all", language="zh", costume_id="", locked=False):
+        if locked:
+            return super().IS_CHANGED(costume_id, language)
         # Re-execute for every queued prompt; the fingerprint is JSON-safe.
         return uuid.uuid4().hex
 
-    def load_random(self, origin="all", language="zh"):
-        selected = random.choice(self._candidates(origin, language))
-        result = super().load_costume(selected["id"], language)
+    @staticmethod
+    def preview_data(selected, language="zh"):
         row = _random_catalog.localized(dict(selected))
-        name = row['name_en'] if language == 'en' else row['name_zh']
-        return {"ui": {"costume_id": [result[3]], "name": [name], "name_zh": [row["name_zh"]], "name_en": [row["name_en"]]}, "result": result}
+        return {"costume_id": row["id"], "name": row["name_en"] if language == "en" else row["name_zh"],
+                "name_zh": row["name_zh"], "name_en": row["name_en"]}
+
+    def load_random(self, origin="all", language="zh", costume_id="", locked=False):
+        if locked:
+            if not costume_id:
+                raise ValueError("Draw a costume before locking" if language == "en" else "请先点击骰子选择服装，再锁定")
+            selected = costume(costume_id)
+        else:
+            selected = random.choice(self._candidates(origin, language))
+        result = super().load_costume(selected["id"], language)
+        return {"ui": {key: [value] for key, value in self.preview_data(selected, language).items()}, "result": result}
 
 
 routes = PromptServer.instance.routes
+
+
+@routes.get('/costume_gallery/random')
+async def random_preview_route(request):
+    """Select metadata only; never enqueue a prompt or load an image tensor."""
+    query = request.query
+    try:
+        def select():
+            candidates = RandomCostumeGallery._candidates(query.get('origin', 'all'), query.get('language', 'zh'))
+            alternatives = [row for row in candidates if row['id'] != query.get('exclude_id')]
+            return RandomCostumeGallery.preview_data(random.choice(alternatives or candidates), query.get('language', 'zh'))
+        return web.json_response(await asyncio.to_thread(select), headers={"Cache-Control": "no-store"})
+    except (ValueError, OSError) as exc:
+        return web.json_response({'error': str(exc)}, status=400, headers={"Cache-Control": "no-store"})
 
 @routes.get('/costume_gallery/catalog')
 async def catalog_route(request):

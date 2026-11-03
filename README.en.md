@@ -7,11 +7,14 @@ A local costume reference gallery for ComfyUI. Built-in assets, existing IDs and
 
 ## Automatic random selection: a separate node
 
-Add **image → Costume Gallery → Random Costume Gallery**, connect `image` to your workflow or Preview Image, and run. Each execution draws a new reference automatically. Set `origin` to `all`, `builtin` or `user`. Categories and keywords retain their original meaning; custom English keywords stay empty rather than being inferred.
+Add **image → Costume Gallery → Random Costume Gallery**, connect `image` to your workflow or Preview Image, and run. While unlocked, each execution draws a new reference automatically. Set `origin` to `all`, `builtin` or `user`. Categories and keywords retain their original meaning; custom English keywords stay empty rather than being inferred.
 
 The original **CostumeGallery** keeps its required ID input and first 6 output sockets, adds an optional `language` input, and appends a seventh `costume` name output. The new node uses those same outputs for one actual selected image and displays its executed ID and preview. Both nodes use `language` for the whole gallery, details, descriptions, and `costume` names. Set `en` for English text outputs or `zh` for Chinese, then run again to update output values.
 
-Draws may repeat by chance and are independent of gallery filters. Missing originals are skipped; an empty usable source raises a clear error. Saved preview IDs never freeze future draws. To keep a result, copy `costume_id` into the original selector. The random node does not enqueue or start tasks itself.
+Click **🎲 Random** to draw and preview a costume using the node's source filter, without running the workflow. The dice skips the current image when alternatives exist. Enable **🔒 Lock random selection** to disable the dice and keep the current `costume_id` and all its outputs for subsequent runs. The workflow saves the lock and selected ID. Draw once before locking. Changing filters while locked keeps the selection; missing or cleaned originals raise an error rather than drawing a replacement.
+
+Unlock to restore automatic random draws on workflow runs, which may repeat by chance. An unlocked manual preview does not fix the next workflow draw. Missing or cleaned originals are excluded; an empty usable source raises an error. The node does not enqueue or start workflow tasks itself.
+
 
 Import [the random costume preview example](example_workflows/random_costume_preview.json); a matching API graph is included.
 

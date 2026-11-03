@@ -1,7 +1,7 @@
 {
   "RandomCostumeGallery": {
     "display_name": "Random Costume Gallery",
-    "description": "Draw a reference on every execution; the original selector is unchanged.",
+    "description": "Click the dice to preview a random costume. Lock the selection to keep it for workflow runs.",
     "inputs": {
       "origin": {
         "name": "Random source",
@@ -10,6 +10,14 @@
       "language": {
         "name": "UI / output language",
         "tooltip": "Controls interface labels and text outputs; saved with the workflow."
+      },
+      "costume_id": {
+        "name": "Current costume ID",
+        "tooltip": "The selected reference. Workflow runs keep this image while locked."
+      },
+      "locked": {
+        "name": "Lock random selection",
+        "tooltip": "Keep the current selection and disable the dice."
       }
     },
     "outputs": {

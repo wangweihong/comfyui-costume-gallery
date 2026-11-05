@@ -16,8 +16,8 @@ app.registerExtension({
       if(langWidget)langWidget.value=language;
       const t=(source,values)=>I.translate(source,language,values);
       const box=document.createElement('div');
-      box.style.cssText='position:relative;width:100%;height:100%;background:#f7f5f0;border-radius:8px;overflow:hidden;';
-      const image=document.createElement('img');image.style.cssText='display:block;width:100%;height:100%;object-fit:contain;';
+      box.style.cssText='position:relative;width:100%;height:100%;min-height:300px;max-height:500px;contain:size;box-sizing:border-box;background:#f7f5f0;border-radius:8px;overflow:hidden;';
+      const image=document.createElement('img');image.style.cssText='display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;';
       const error=document.createElement('div');error.setAttribute('role','status');
       error.style.cssText='display:none;position:absolute;inset:15px;place-items:center;color:#9a493c;font:13px/1.7 sans-serif;overflow-wrap:anywhere;';
       box.append(image,error);
@@ -76,8 +76,9 @@ app.registerExtension({
         document.body.append(dialog);setLanguage(language,false);dialog.showModal();
       });
       const toolbar=document.createElement('div');toolbar.style.cssText='width:100%;height:42px;display:flex;align-items:center;gap:6px;';toolbar.append(browse,toggle);
-      node.addDOMWidget('costume_browser','button',toolbar,{serialize:false,hideOnZoom:false,getMinHeight:()=>42,getMaxHeight:()=>42});
-      node.addDOMWidget('costume_preview','image',box,{serialize:false,hideOnZoom:false,getMinHeight:()=>300,getMaxHeight:()=>500});
+      // Native widget types (e.g. button) replace this DOM in Nodes 2.0.
+      node.addDOMWidget('costume_browser','costume_gallery_control',toolbar,{serialize:false,hideOnZoom:false,getMinHeight:()=>42,getMaxHeight:()=>42});
+      node.addDOMWidget('costume_preview','costume_gallery_preview',box,{serialize:false,hideOnZoom:false,getMinHeight:()=>300,getMaxHeight:()=>500});
       const configured=node.onConfigure;node.onConfigure=function(config){configured?.apply(this,arguments);if(node.outputs?.length===6&&!node.outputs.some(output=>output.name==='costume'))node.addOutput('costume','STRING');if(langWidget){const saved=config?.widgets_values?.[1];setLanguage(['zh','en'].includes(saved)?saved:'zh');}update();};
       const removed=node.onRemoved;node.onRemoved=function(){close();removed?.apply(this,arguments);};
       node.setSize([420,565]);setLanguage(language,false);update();

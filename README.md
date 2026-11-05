@@ -2,6 +2,8 @@
 
 **简体中文** · [English](README.en.md)
 
+支持旧画布和 **Nodes 2.0**（ComfyUI 前端 1.57.4 实测），包括浏览选图、预览、骰子和锁定。更新后请强制刷新页面加载新版前端脚本。
+
 ComfyUI 本地中文服装图库节点，参考 [ai-costume-gallery-zh](https://github.com/wangweihong/ai-costume-gallery-zh) 的界面和素材。内置 1,407 套服装，8 个分类，包含全部 WebP 缩略图、WebP 预览图和 PNG 原图，共 4,221 张图片，约 1.42 GiB。
 
 
